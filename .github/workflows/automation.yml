@@ -1,0 +1,73 @@
+name: Forgehand
+on:
+  workflow_call:
+    inputs:
+      runtime-repository:
+        type: string
+        default: Wolfsblvt/forgehand
+      runtime-ref:
+        description: Exact reviewed 40-character runtime commit SHA.
+        type: string
+        required: true
+      policy:
+        type: string
+        default: .github/automation/policy.json
+      apply:
+        type: boolean
+        default: false
+      app-client-id:
+        type: string
+        default: ''
+    secrets:
+      app-private-key:
+        required: false
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  checks: read
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: forgehand-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number || inputs.number || github.event_name }}
+      cancel-in-progress: false
+    steps:
+      - name: Validate the selected runtime coordinate
+        shell: bash
+        env:
+          RUNTIME_REPOSITORY: ${{ inputs.runtime-repository }}
+          RUNTIME_REF: ${{ inputs.runtime-ref }}
+        run: |
+          [[ "$RUNTIME_REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || exit 1
+          [[ "$RUNTIME_REF" =~ ^[0-9a-f]{40}$ ]] || exit 1
+      - name: Supply the supported runtime explicitly
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0, inspected 2026-09-09
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Checkout only the reviewed public runtime
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, inspected 2026-09-09
+        with:
+          repository: ${{ inputs.runtime-repository }}
+          ref: ${{ inputs.runtime-ref }}
+          path: .forgehand-runtime
+          persist-credentials: false
+          submodules: false
+          lfs: false
+      - id: plan
+        name: Plan from current trusted policy without a writer
+        uses: ./.forgehand-runtime
+        with:
+          policy: ${{ inputs.policy }}
+          apply: false
+          read-token: ${{ github.token }}
+      - name: Revalidate and apply only a current non-empty plan
+        if: inputs.apply && steps.plan.outputs.requires-writer == 'true'
+        uses: ./.forgehand-runtime
+        with:
+          policy: ${{ inputs.policy }}
+          apply: true
+          read-token: ${{ github.token }}
+          app-client-id: ${{ inputs.app-client-id }}
+          app-private-key: ${{ secrets.app-private-key }}

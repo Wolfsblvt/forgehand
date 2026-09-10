@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.wolfsblvt.dev/forgehand/policy-v1.json",
+  "title": "Forgehand repository lifecycle policy",
+  "description": "Raw policy shape. The runtime additionally validates key ownership, template references and cross-field semantics. The schema identifier is an identifier, not a hosted-service claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "labelPolicy": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "actor": {
+      "type": "string",
+      "pattern": "^[\\w-]+\\[bot\\]$"
+    },
+    "automationAccounts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "profile": {
+      "enum": [
+        "product",
+        "company"
+      ]
+    },
+    "inactivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "issues": {
+          "type": "boolean"
+        },
+        "prs": {
+          "type": "boolean"
+        },
+        "afterDays": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "warningDays": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "afterDays": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "warningDays": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "reopen": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "phrase": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ownerCards": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "branches": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "main": {
+          "type": "string",
+          "minLength": 1
+        },
+        "next": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tryNextUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "key",
+          "include"
+        ]
+      }
+    },
+    "intake": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "issues": {
+          "type": "boolean"
+        },
+        "prs": {
+          "type": "boolean"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "titlePrefix": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "key",
+              "titlePrefix"
+            ]
+          }
+        }
+      }
+    },
+    "replies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "message"
+        ]
+      }
+    },
+    "resolutions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "enum": [
+              "completed",
+              "not_planned"
+            ]
+          },
+          "message": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            ]
+          },
+          "requiresReference": {
+            "type": "boolean"
+          },
+          "lock": {
+            "enum": [
+              "off-topic",
+              "too heated",
+              "resolved",
+              "spam"
+            ]
+          }
+        },
+        "required": [
+          "reason",
+          "message"
+        ]
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "checkName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protectMain": {
+          "type": "boolean"
+        },
+        "allowedMainLabels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "blockingLabels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "diffdevil": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "adapter": {
+          "type": "string",
+          "enum": ["diffdevil-cli-v1"]
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cleanup": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "messages": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "file"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+name: Bug report
+description: Report a reproducible problem.
+title: '[Bug]: '
+labels: ['🏷️ Bug', '🧭 Needs Triage']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the observed and expected behavior, including the version you used.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How can it be reproduced?
+      description: Include steps and non-sensitive logs. Never include credentials or personal data.
+    validations:
+      required: true
