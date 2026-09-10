@@ -1,0 +1,36 @@
+name: Forgehand
+description: Policy-driven Issue and PR lifecycle automation with repository-owned policy and an explicit App writer.
+inputs:
+  policy:
+    description: Repository-relative JSON policy path on the caller's accepted default branch.
+    default: .github/automation/policy.json
+  apply:
+    description: Set true only for an authorized mechanical write; false produces a read-only plan.
+    default: 'false'
+  read-token:
+    description: Read-only token for this repository's facts and accepted policy.
+    required: true
+  app-client-id:
+    description: Selected Automaton App client ID, required only when applying.
+    required: false
+  app-private-key:
+    description: Mediated App private key, required only when applying. Never print it.
+    required: false
+outputs:
+  requires-writer:
+    description: Whether the read-only current plan contains an authorized outward effect.
+    value: ${{ steps.reconcile.outputs.requires-writer }}
+runs:
+  using: composite
+  steps:
+    - id: reconcile
+      name: Reconcile from accepted policy
+      shell: bash
+      env:
+        AUTOMATION_ACTION_PATH: ${{ github.action_path }}
+        AUTOMATION_POLICY: ${{ inputs.policy }}
+        AUTOMATION_APPLY: ${{ inputs.apply }}
+        AUTOMATION_READ_TOKEN: ${{ inputs.read-token }}
+        AUTOMATON_CLIENT_ID: ${{ inputs.app-client-id }}
+        AUTOMATON_PRIVATE_KEY: ${{ inputs.app-private-key }}
+      run: node "$AUTOMATION_ACTION_PATH/src/action-entry.mjs"

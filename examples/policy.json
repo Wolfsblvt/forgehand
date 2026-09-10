@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "labelPolicy": ".github/label-policy.json",
+  "inactivity": {
+    "issues": true,
+    "prs": false,
+    "afterDays": 90,
+    "warningDays": 7
+  },
+  "branches": {
+    "main": "main",
+    "next": null
+  },
+  "diffdevil": {
+    "enabled": false,
+    "adapter": "diffdevil-cli-v1",
+    "args": []
+  },
+  "replies": {
+    "needs.tests": {
+      "message": "This change needs testing. Please say which version or branch you tested, what you tried, and what happened. Testing feedback does not itself approve or merge the change."
+    },
+    "needs.info": {
+      "message": "More information is needed to assess this report. Please add the relevant version, environment and requested details. This label alone does not start a no-response timer."
+    },
+    "needs.reproduction": {
+      "message": "A reproducible example is needed. Please describe the smallest set of steps, the expected result and what actually happens, with sensitive data removed."
+    }
+  }
+}

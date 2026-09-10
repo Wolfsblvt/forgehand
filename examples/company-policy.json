@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "profile": "company",
+  "labelPolicy": "examples/company-label-policy.json",
+  "intake": {
+    "issues": false,
+    "prs": false
+  },
+  "inactivity": {
+    "issues": false,
+    "prs": false
+  },
+  "response": {
+    "enabled": false
+  },
+  "ownerCards": {
+    "enabled": false
+  }
+}
