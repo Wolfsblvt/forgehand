@@ -1,6 +1,6 @@
 {
   "name": "@wolfsblvt/forgehand",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Policy-driven lifecycle automation for GitHub Issues and pull requests, with repository-owned policy and voice.",
   "type": "module",
   "license": "MIT",
