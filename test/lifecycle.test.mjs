@@ -9,8 +9,8 @@ const view=f=>({...f.s,replies:[...f.s.comments,...f.s.replies]});
 for(const label of ['Confirmed','Approved','Needs Testing','Awaiting Release','Priority: High']) test(`${label} does not protect an inactive issue`,()=>{
  const f=fixture(); f.label(label); assert.equal(plan(view(f),f.c,f.clock.now())[0].purpose,'staleWarning');
 });
-test('default PR expiry is off',()=>{const f=fixture({pr:true});assert.deepEqual(plan(view(f),f.c,f.clock.now()),[]);});
-test('PR expiry is available as an opt-in',()=>{const f=fixture({pr:true,overrides:{inactivity:{prs:true}}});assert.equal(plan(view(f),f.c,f.clock.now())[0].purpose,'staleWarning');});
+test('default PR expiry warns after the product inactivity period',()=>{const f=fixture({pr:true});assert.equal(plan(view(f),f.c,f.clock.now())[0].purpose,'staleWarning');});
+test('PR expiry can be explicitly disabled for a repository',()=>{const f=fixture({pr:true,overrides:{inactivity:{prs:false}}});assert.deepEqual(plan(view(f),f.c,f.clock.now()),[]);});
 test('Keep Open is the explicit general exception',()=>{const f=fixture();f.label(f.c.labels['control.keep-open']);assert.deepEqual(plan(view(f),f.c,f.clock.now()),[]);});
 test('company profile does not stale standing rooms by accident',()=>{const f=fixture({overrides:{profile:'company'}});assert.deepEqual(plan(view(f),f.c,f.clock.now()),[]);});
 test('company profile can explicitly adopt expiry',()=>{const f=fixture({overrides:{profile:'company',inactivity:{issues:true}}});assert.equal(plan(view(f),f.c,f.clock.now())[0].purpose,'staleWarning');});
@@ -79,9 +79,9 @@ test('removing Awaiting Response after warning does not cancel the request',asyn
  const f=fixture({age:0});const e=engine(f);f.comment('Details please\n/automaton await-response @reporter',maintainer);await e.reconcile(7);f.clock.day=14;await e.reconcile(7);
  f.s.issue.labels=[];f.clock.day=21;await e.reconcile(7);assert.equal(f.s.issue.state,'closed');
 });
-test('requested person reply stops response consequence without declaring the answer sufficient',async()=>{
+test('requested person reply stops response consequence without a duplicate public reply',async()=>{
  const f=fixture({age:0});const e=engine(f);f.comment('Reproduction please\n/automaton await-response @reporter',maintainer);await e.reconcile(7);f.clock.day=14;await e.reconcile(7);
- f.clock.day=15;f.comment('Here is some more context.');await e.reconcile(7);f.clock.day=22;await e.reconcile(7);assert.equal(f.s.issue.state,'open');assert(f.records().some(x=>x.kind==='responseReceived'));
+ f.clock.day=15;f.comment('Here is some more context.');await e.reconcile(7);f.clock.day=22;await e.reconcile(7);assert.equal(f.s.issue.state,'open');assert(!f.records().some(x=>x.kind==='responseReceived'));
 });
 test('an unauthorized command cannot start or cancel the response timer',async()=>{
  const f=fixture({age:0});f.comment('/automaton await-response @Wolf');await engine(f).reconcile(7);assert.equal(f.records().length,0);
@@ -108,7 +108,7 @@ test('manual resolution is not an automatic timeout',async()=>{
 });
 test('main closes and replies even without next or a published package',async()=>{
  const f=fixture();await engine(f).complete(7,{pr:23,commit:'a'.repeat(40),branch:'main'});assert.equal(f.s.issue.state,'closed');
- assert.match(f.s.comments[0].body,/stable \*\*main\*\* source/);assert.match(f.s.comments[0].body,/may follow later/);
+ assert.match(f.s.comments[0].body,/stable \*\*main\*\* source/);assert.match(f.s.comments[0].body,/a{40}/);
 });
 test('native GitHub closure still receives the stable-source message',async()=>{
  const f=fixture();f.state('closed');await engine(f).complete(7,{pr:23,commit:'a'.repeat(40),branch:'main'});assert(f.records().some(x=>x.kind==='fixed'));assert.equal(f.s.issue.state,'closed');

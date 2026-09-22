@@ -1,3 +1,3 @@
-The change is on **{{branch}}** and ready to try: {{prUrl}}.
+The change for this issue is available on **{{branch}}** in {{prUrl}}.
 
-Use the project's development instructions at {{tryNextUrl}}. It has not reached stable **{{main}}** yet; please tell us whether it resolves the original issue.
+It is not in stable **{{main}}** yet. To try it: {{tryNextUrl}}

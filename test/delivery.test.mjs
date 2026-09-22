@@ -20,6 +20,13 @@ test('adoption packet pins both called workflow and runtime checkout to one exac
   assert.ok(!workflow.includes('@@'));
   assert.match(workflow,/FORGEHAND_ENABLED/);
 });
+test('product and company packets select only their applicable lifecycle inventory',async()=>{
+  const product=await adoptionFiles({runtimeRelease:release});
+  const company=await adoptionFiles({runtimeRelease:release,profile:'company'});
+  assert.ok(product['.diffdevil.yml']);assert.ok(product['.github/automation/messages/diffdevil-xl.md']);
+  assert.equal(company['.diffdevil.yml'],undefined);assert.equal(company['.github/automation/messages/inactivity-warning.md'],undefined);
+  assert.ok(company['.github/company-label-policy.json']);
+});
 test('a bare runtime SHA stays an explicitly non-deployable preview',async t=>{
   const output=await scratch(t);
   const preview=await install({runtimeRef:pin},{output});
@@ -41,7 +48,7 @@ test('generated packet reaches a full offline configuration including canonical 
   const result=await localPolicy('.github/automation/policy.json',root);
   assert.equal(result.mode,'local-preview');assert.equal(result.config.inactivity.warningDays,7);
   assert.equal(result.config.labels['state.awaiting-release'],'⏳ Awaiting Release');
-  assert.equal(result.config.inactivity.prs,false);
+  assert.equal(result.config.inactivity.prs,true);
 });
 test('offline preview renders a whole repository message file without executable evaluation',async t=>{
   const root=await scratch(t);

@@ -28,7 +28,7 @@ selected internal workplace rooms, not a synonym for private visibility. It neve
 | `labelPolicy` | `null`, or one repository-relative canonical label-policy file |
 | `actor` | `wolfsblvt-automaton[bot]`; must match the authenticated App slug |
 | `automationAccounts` | Extra exact account logins whose replies must not count as human activity |
-| `inactivity` | Issues `true`, PRs `false`, `afterDays: 90`, `warningDays: 7` |
+| `inactivity` | Issues and PRs `true`, `afterDays: 90`, `warningDays: 7` for the product profile; Company leaves both off unless selected |
 | `response` | Enabled; request after `14` days, warning grace `7` days |
 | `reopen` | Enabled; phrase `still relevant` |
 | `ownerCards` | Disabled; when enabled, exact maintainer owner-card headings can repair selected owner reminders |
@@ -38,7 +38,6 @@ selected internal workplace rooms, not a synonym for private visibility. It neve
 | `areas` | Automatic PR area maps; ordinary Issue areas remain semantic judgments |
 | `replies`, `resolutions` | Explicit maintainer-selection rules, empty until selected |
 | `gate` | Disabled by default; optional main authorization and explicit hard blockers |
-| `diffdevil` | Unavailable in this first public release; it remains disabled until the separate DiffDevil dependency is published and qualified |
 | `cleanup` | Remove owned Stale/Awaiting Response state on closure, never all labels |
 | `messages` | Whole-message replacements, inline or `{ "file": ".github/automation/messages/name.md" }` |
 
@@ -127,8 +126,8 @@ promise remains 14 days even when the current default becomes 7. Removing Keep O
 history; it does not manufacture activity or another automatic grace extension.
 
 Keep Open alone exempts general inactivity. Confirmed, Approved, priority, adopted work, and Awaiting Release do not.
-General PR expiry is off by default. Strongly recommend enabling it once regular outside submissions create a standing
-queue, and state the adopted rule in CONTRIBUTING. There is no star threshold or automatic enablement.
+Product PR expiry is on by default with the same 90-day warning and 7-day grace as Issues. A repository may explicitly
+disable it. The Company profile leaves both Issue and PR inactivity off unless it deliberately selects either journey.
 
 To start a necessary-response workflow, a maintainer writes the essential question and adds this command in their reply:
 
@@ -175,7 +174,7 @@ completion relationship for a reverted feature. This implementation does not att
 
 Replace a whole template, not just its greeting. File references also work in a reply/resolution rule's `message` value.
 Values are nonrecursive data, not JavaScript or shell. Common variables are `kind`, `number`, `phrase`, `afterDays`,
-`warningDays`, `deadline`, `keepOpenLabel`, `receiver`, `requestUrl`, `reference`, `main`, `branch`, `prUrl`, `commitUrl`, and
+`warningDays`, `deadline`, `keepOpenLabel`, `receiver`, `requestUrl`, `reference`, `main`, `branch`, `prUrl`, `commitSha`, and
 `tryNextUrl`; availability depends on the actual transition. An unavailable variable fails the render before posting.
 
 Machine episode markers are independent of editable prose. Do not remove them while changing message wording. A marker
@@ -186,11 +185,10 @@ Manual Triage pauses managed labels and policy replies, not tests or hard gates.
 without suppressing factual labels. A required warning that cannot be delivered is **blocked**, not secretly delivered;
 there is no unannounced timeout closure. Main-source closure remains independently defined.
 
-DiffDevil integration is unavailable in this first public release. Keep `diffdevil.enabled` false: DiffDevil has no
-published install or invocation route for this runtime yet, so setting it true would produce an unsupported executable
-dependency rather than a usable size-labelling feature. The retained adapter is an implementation seam, not a supported
-configuration promise.
+The product packet includes `.diffdevil.yml` and its repository-owned XL template for the managed **diffdevil** App.
+Forgehand does not execute diffdevil, classify size, or write size labels or XL replies. Keep execution disabled while
+the packet lands on stable `main`; after authorized App admission, the next ordinary pull request is the first truthful
+trial because the App reads policy from the pull request base revision.
 
-When DiffDevil is separately published and qualified, its integration must consume the repository's actual accepted
-size policy, thresholds, exclusions, and completeness meaning. The lifecycle engine must not reimplement measurement or
-compete for those keys. Do not assume a CLI's similarly named metric is equivalent.
+The managed App consumes the repository's accepted size policy, thresholds, exclusions, and completeness meaning. The
+lifecycle engine does not reimplement measurement or compete for those keys.

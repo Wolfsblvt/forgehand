@@ -11,7 +11,8 @@ export function plan(snapshot, c, now = new Date().toISOString()) {
   const { issue, pr, comments, timeline, replies = comments, maintainers = [] } = snapshot;
   const kind = pr ? 'pr' : 'issue';
   const labels = new Set(issue.labels.map(l => typeof l === 'string' ? l : l.name));
-  const has = k => (!c.labelScopes?.[k] || c.labelScopes[k].includes(kind)) && c.labels[k] && labels.has(c.labels[k]);
+  const selectedScope = k => c.labelScopes === undefined || c.labelScopes[k]?.includes(kind);
+  const has = k => selectedScope(k) && c.labels[k] && labels.has(c.labels[k]);
   const records = comments.map(x => record(x,c.actor)).filter(Boolean);
   const humans = replies.filter(x => human(x.user,c.automationAccounts) && x.body?.trim());
   const transitions = timeline.filter(e => ['closed','reopened'].includes(e.event));
@@ -26,7 +27,7 @@ export function plan(snapshot, c, now = new Date().toISOString()) {
   const base = { kind, number:issue.number, now, afterDays:c.inactivity.afterDays, phrase:c.reopen.phrase, keepOpenLabel:c.labels['control.keep-open'] };
   const effect = (type, data) => ({type,...data});
   const message = (id, purpose, values={}, data={}) => effect('message',{id,purpose,values:{...base,...values},record:{version:1,id,kind:purpose,...data}});
-  const add = k => c.labels[k] && !has(k) ? effect('addLabel',{key:k,label:c.labels[k]}) : null;
+  const add = k => selectedScope(k) && c.labels[k] && !has(k) ? effect('addLabel',{key:k,label:c.labels[k]}) : null;
   const remove = k => c.labels[k] && has(k) ? effect('removeLabel',{key:k,label:c.labels[k]}) : null;
   const suppress = has('control.manual-triage') || has('control.no-auto-reply');
   const manual = has('control.manual-triage');
@@ -91,11 +92,7 @@ export function plan(snapshot, c, now = new Date().toISOString()) {
     if (!answered) {
       if (!manual) { const a=add('state.awaiting-response'); if(a) return [a]; }
       if (time(now)>=time(request.requestAt)+c.response.afterDays*DAY) return warn('response',request.id,{receiver:request.receiver,requestUrl:request.requestUrl});
-    } else {
-      const doneId=key('received',request.id);
-      if (!find(doneId) && !suppress) return [message(doneId,'responseReceived',{}, {requestId:request.id})];
-      if (!manual) { const clear=clean(['state.awaiting-response','state.stale']); if(clear.length) return clear; }
-    }
+    } else if (!manual) { const clear=clean(['state.awaiting-response','state.stale']); if(clear.length) return clear; }
   } else if (cancelled && !manual) {
     const clear=clean(['state.awaiting-response']); if(clear.length) return clear;
   }

@@ -1,3 +1,3 @@
-The fix is in **{{main}}** now: {{commitUrl}} ({{prUrl}}).
+The change for this issue is now in stable **{{main}}** source: {{prUrl}} ({{commitSha}}).
 
-This issue is closed as fixed in stable source. A downloadable, deployed, or store-distributed update may arrive later.
+This issue is closed as fixed in source. A package or deployment may follow later.

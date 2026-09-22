@@ -31,11 +31,13 @@ coordinate; it does not activate a consumer workflow or publish an npm package.
 
 Initial intake hints and PR path areas; maintainer-selected support replies and resolutions; real inactivity and
 necessary-response workflows; deliberate `still relevant` reopening; and concrete development/stable-source replies.
-PR size labelling is unavailable in this first public release. It stays disabled until the separate DiffDevil dependency
-is published and its install and invocation route is qualified. Forgehand does not contain another size parser.
+The generated product packet includes repository-owned `.diffdevil.yml` and an XL-reply template for the managed
+**diffdevil** App. The App is the sole size-label, check, and XL-comment writer; Forgehand has no size parser or local
+diffdevil executable. Land that policy while App execution is disabled, then use the next ordinary pull request as the
+first honest managed-App trial.
 
-The defaults are intentionally straightforward: Issues warn after **90 days without non-bot replies** and close after
-**7 further days**. PR inactivity closure is available but **off by default**. Only replies reset the ordinary clock;
+The defaults are intentionally straightforward: Issues and pull requests warn after **90 days without non-bot replies** and close after
+**7 further days**. Only replies reset the ordinary clock;
 label edits, pushes, reactions, and body edits do not. **Keep Open** is its explicit exemption, not Confirmed or Approved.
 
 A completed linked Issue is **closed and receives a reply when its fix reaches `main`**, even without a `next` branch.
@@ -67,16 +69,20 @@ release URL. The installer remains offline: without that record it produces only
 coordinate matches the record; it does not perform a live availability check. Generation is **not live GitHub changes**.
 Before activation, reconcile existing labels and writers, provision the selected label definitions through the authorized
 setup route, and review the generated configuration. Do not overwrite an established label policy with the example.
+Use `--profile company` only for a selected Company workplace packet; it omits product lifecycle and managed-diffdevil
+inventory. The [message-authoring guide](docs/message-authoring.md) explains how repository voice can vary without
+hiding the action, deadline, consequence, or recovery route.
 
 Set up the selected App installation and mediated secret supply separately. The caller is inactive until that
 repository's `FORGEHAND_ENABLED` variable is `true`. First dispatch it with `apply: false` and a concrete
 Issue/PR number. The [configuration guide](docs/configuration.md) explains controls and templates; the
+[message-authoring guide](docs/message-authoring.md) explains their reader-facing contract; the
 [maintenance guide](docs/maintenance.md) explains credentials, verification, updates, and recovery.
 
 A reusable workflow is supplied in [`.github/workflows/automation.yml`](.github/workflows/automation.yml).
 Repositories needing different composition can use [`action.yml`](action.yml) or the same CLI. These are entry points
-into one runtime, not three separate implementations. Do not add a custom DiffDevil executable to that composition:
-size labelling has no supported install or invocation route until DiffDevil is separately published and qualified.
+into one runtime, not three separate implementations. Do not add a custom diffdevil executable to that composition:
+the managed App owns the size-label, check, and XL-comment route.
 
 ## Scope and support
 

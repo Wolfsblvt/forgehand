@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync, verify } from 'node:crypto';
 import { appToken } from '../src/auth.mjs';
-import { runEvent, loadPolicy, sizePR, gatePR, execute, requiresWriter } from '../src/runner.mjs';
+import { runEvent, loadPolicy, gatePR, execute, requiresWriter } from '../src/runner.mjs';
 import { configure } from '../src/config.mjs';
 import { Engine } from '../src/engine.mjs';
 import { ownText, ownerCardLabels, wantsReopen, marker, record } from '../src/text.mjs';
@@ -151,15 +151,6 @@ test('a pending receipt cannot adopt an intervening manual close/reopen',async()
   f.gh.write=async(...args)=>{const r=await write(...args);if(fail&&args[0]==='PATCH'&&args[1]==='/issues/7'){fail=false;throw new Error('lost');}return r;};
   await assert.rejects(e.reconcile(7));f.clock.day++;f.state('open');f.state('closed');await e.reconcile(7);
   f.clock.day++;f.comment('still relevant');await e.reconcile(7);assert.equal(f.s.issue.state,'closed');
-});
-test('a failed diffdevil process cannot echo its credential-bearing stderr',async()=>{
-  const f=fixture({pr:true,overrides:{diffdevil:{enabled:true,args:['known-interface']}}});
-  await assert.rejects(sizePR(f.gh,f.c,7,true,{execute:async()=>{throw new Error('token=fixture-only');}}),e=>/execution failed/.test(e.message)&&!e.message.includes('fixture-only'));
-});
-test('exactly one configured size label is read back after diffdevil',async()=>{
-  const f=fixture({pr:true,overrides:{labels:{'size.s':'Small','size.l':'Large'},diffdevil:{enabled:true,args:['known-interface']}}});
-  await assert.rejects(sizePR(f.gh,f.c,7,true,{execute:async()=>{}}),/exactly one/);
-  const result=await sizePR(f.gh,f.c,7,true,{execute:async()=>{f.s.issue.labels=[{name:'Small'}];}});assert.deepEqual(result.sizeLabels,['Small']);
 });
 test('configuration and whole-message files are read at one accepted SHA',async()=>{
   const reads=[];const gh={get:async()=>({default_branch:'main'}),ref:async()=> 'a'.repeat(40),file:async(path,sha)=>{

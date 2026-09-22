@@ -37,3 +37,6 @@ merge, publish a release, or promise support. The owning maintainer chooses thos
 
 Contributions use a reviewable PR. There is no automatically enabled
 consumer lifecycle workflow in this repository merely because the reusable workflow file exists.
+
+When changing a built-in fallback or repository message voice, read [docs/message-authoring.md](docs/message-authoring.md).
+Repository templates may change voice, but they retain the action, deadline, consequence, and recovery meaning a reader needs.
