@@ -1,4 +1,4 @@
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile, readdir, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -21,14 +21,24 @@ export function publicRuntime(release) {
 }
 
 /** Create-only adoption assets. A runtime update never rewrites local policy or branded messages. */
-export async function adoptionFiles({ runtimeRelease }) {
+export async function adoptionFiles({ runtimeRelease, profile = 'product' }) {
   const { repository: runtimeRepository, runtimeRef } = publicRuntime(runtimeRelease);
+  if (!['product', 'company'].includes(profile)) throw new Error('Adoption profile must be product or company');
   const template = await readFile(resolve(root, 'examples/repository-automation.yml'), 'utf8');
+  const policyName = profile === 'product' ? 'policy.json' : 'company-policy.json';
+  const labelName = profile === 'product' ? 'label-policy.json' : 'company-label-policy.json';
   const files = {
     '.github/workflows/repository-automation.yml': template.replaceAll('@@RUNTIME_REPOSITORY@@', runtimeRepository).replaceAll('@@RUNTIME_SHA@@', runtimeRef),
-    '.github/automation/policy.json': await readFile(resolve(root, 'examples/policy.json'), 'utf8'),
-    '.github/label-policy.json': await readFile(resolve(root, 'examples/label-policy.json'), 'utf8'),
+    '.github/automation/policy.json': await readFile(resolve(root, 'examples', policyName), 'utf8'),
+    [`.github/${labelName}`]: await readFile(resolve(root, 'examples', labelName), 'utf8'),
+    '.github/automation/README.md': await readFile(resolve(root, 'examples/automation-readme.md'), 'utf8'),
   };
+  if (profile === 'product') {
+    files['.diffdevil.yml'] = await readFile(resolve(root, 'examples/diffdevil.yml'), 'utf8');
+    for (const name of await readdir(resolve(root, 'examples/messages'))) {
+      files[`.github/automation/messages/${name}`] = await readFile(resolve(root, 'examples/messages', name), 'utf8');
+    }
+  }
   const workflow = files['.github/workflows/repository-automation.yml'];
   if (!workflow.includes(`${runtimeRepository}/.github/workflows/automation.yml@${runtimeRef}`) || !workflow.includes(`runtime-repository: ${runtimeRepository}`) || !workflow.includes(`runtime-ref: ${runtimeRef}`)) throw new Error('Generated caller did not preserve the selected public runtime coordinates');
   return files;
@@ -51,12 +61,12 @@ export async function install(options, { write = false, output = resolve(root, '
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, files[change.path], { encoding: 'utf8', flag: 'wx' });
   }
-  return { mode: write ? 'create-only' : 'preview', readiness: 'public-runtime-bound', runtime: publicRuntime(options.runtimeRelease), output, changes };
+  return { mode: write ? 'create-only' : 'preview', readiness: 'public-runtime-bound', profile: options.profile ?? 'product', runtime: publicRuntime(options.runtimeRelease), output, changes };
 }
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
   try {
-    const { values } = parseArgs({ options: { 'runtime-release': { type: 'string' }, 'runtime-ref': { type: 'string' }, output: { type: 'string' }, write: { type: 'boolean', default: false } } });
+    const { values } = parseArgs({ options: { 'runtime-release': { type: 'string' }, 'runtime-ref': { type: 'string' }, profile: { type: 'string', default: 'product' }, output: { type: 'string' }, write: { type: 'boolean', default: false } } });
     const runtimeRelease = values['runtime-release'] ? JSON.parse(await readFile(resolve(values['runtime-release']), 'utf8')) : undefined;
-    console.log(JSON.stringify(await install({ runtimeRelease, runtimeRef: values['runtime-ref'] }, { write: values.write, output: values.output }), null, 2));
+    console.log(JSON.stringify(await install({ runtimeRelease, runtimeRef: values['runtime-ref'], profile: values.profile }, { write: values.write, output: values.output }), null, 2));
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

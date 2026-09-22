@@ -25,7 +25,7 @@ export function labelPolicy(value) {
     }
   }
   if (value.size) {
-    if (value.size.metric !== 'replacement-lines-v1') throw new Error('Unsupported label measurement contract; qualify the actual diffdevil adapter before changing it');
+    if (value.size.metric !== 'replacement-lines-v1') throw new Error('Unsupported label measurement contract; qualify the managed diffdevil policy before changing it');
     const limits = ['xs', 's', 'm', 'l'].map(x => value.size.upperExclusive?.[x]);
     if (limits.some((n, i) => !Number.isSafeInteger(n) || n <= 0 || i && n <= limits[i - 1])) throw new Error('Size thresholds must be positive increasing integers');
     for (const field of ['exclude', 'forceInclude', 'includeOnly']) {

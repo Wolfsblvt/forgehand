@@ -9,7 +9,7 @@ export const defaults = {
   labelPolicy: null,
   actor: 'wolfsblvt-automaton[bot]',
   automationAccounts: [],
-  inactivity: { issues: true, prs: false, afterDays: 90, warningDays: 7 },
+  inactivity: { issues: true, prs: true, afterDays: 90, warningDays: 7 },
   response: { enabled: true, afterDays: 14, warningDays: 7 },
   reopen: { enabled: true, phrase: 'still relevant' },
   ownerCards: { enabled: false },
@@ -20,7 +20,6 @@ export const defaults = {
   replies: {},
   resolutions: {},
   gate: { enabled: false, checkName: 'Repository policy', protectMain: true, allowedMainLabels: [], blockingLabels: [] },
-  diffdevil: { enabled: false, adapter: 'diffdevil-cli-v1', args: [] },
   cleanup: ['state.stale', 'state.awaiting-response'],
   messages: {},
   profile: 'product'
@@ -43,18 +42,21 @@ export function configure(overrides = {}) {
   const c = merge(defaults, overrides);
   if (c.schemaVersion !== 1) throw new Error('Unsupported configuration schemaVersion');
   if (!/^[\w-]+\[bot\]$/.test(c.actor)) throw new Error('actor must be an App bot login');
-  for (const group of ['inactivity','response','reopen','ownerCards','branches','gate','diffdevil','intake']) {
+  for (const group of ['inactivity','response','reopen','ownerCards','branches','gate','intake']) {
     if (!object(c[group])) throw new Error(`${group} must be an object`);
     for (const k of Object.keys(c[group])) if (!Object.hasOwn(defaults[group],k)) throw new Error(`Unknown ${group}.${k}`);
   }
-  for (const [o,k] of [['inactivity','issues'],['inactivity','prs'],['response','enabled'],['reopen','enabled'],['ownerCards','enabled'],['gate','enabled'],['gate','protectMain'],['diffdevil','enabled'],['intake','issues'],['intake','prs']]) {
+  for (const [o,k] of [['inactivity','issues'],['inactivity','prs'],['response','enabled'],['reopen','enabled'],['ownerCards','enabled'],['gate','enabled'],['gate','protectMain'],['intake','issues'],['intake','prs']]) {
     if (typeof c[o][k] !== 'boolean') throw new Error(`${o}.${k} must be boolean`);
   }
   for (const o of ['inactivity','response']) for (const k of ['afterDays','warningDays']) {
     if (!Number.isFinite(c[o][k]) || c[o][k] <= 0) throw new Error(`${o}.${k} must be positive days`);
   }
   if (!['product','company'].includes(c.profile)) throw new Error('Unknown profile');
-  if (c.profile === 'company' && !Object.hasOwn(overrides.inactivity ?? {},'issues')) c.inactivity.issues = false;
+  if (c.profile === 'company') {
+    if (!Object.hasOwn(overrides.inactivity ?? {},'issues')) c.inactivity.issues = false;
+    if (!Object.hasOwn(overrides.inactivity ?? {},'prs')) c.inactivity.prs = false;
+  }
   if (typeof c.reopen.phrase !== 'string' || !c.reopen.phrase.trim()) throw new Error('Reopening phrase must not be empty');
   if (typeof c.branches.main !== 'string' || !c.branches.main || (c.branches.next !== null && typeof c.branches.next !== 'string') || c.branches.main === c.branches.next) throw new Error('Distinct stable/development branches required');
   if (c.branches.next && !/^https:\/\//.test(c.branches.tryNextUrl)) throw new Error('Two-line policy needs the actual HTTPS tryNextUrl');
@@ -89,7 +91,6 @@ export function configure(overrides = {}) {
   for (const k of c.cleanup) if (!c.labels[k] || k.startsWith('size.') || k.startsWith('control.')) throw new Error(`Invalid cleanup key ${k}`);
   for (const field of ['allowedMainLabels','blockingLabels']) if (!Array.isArray(c.gate[field]) || c.gate[field].some(k => !c.labels[k])) throw new Error('Unmapped gate label');
   if (typeof c.gate.checkName !== 'string' || !c.gate.checkName.trim()) throw new Error('gate.checkName must be non-empty');
-  if (c.diffdevil.enabled && (c.diffdevil.adapter !== 'diffdevil-cli-v1' || !Array.isArray(c.diffdevil.args) || !c.diffdevil.args.length || c.diffdevil.args.some(x=>typeof x !== 'string'))) throw new Error('Enable the supported diffdevil adapter only with its qualified arguments');
   return c;
 }
 

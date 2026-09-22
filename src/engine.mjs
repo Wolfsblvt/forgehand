@@ -196,7 +196,7 @@ export class Engine {
     }
     const branchSha=await this.gh.ref(completion.branch);
     if(!await this.gh.contains(completion.commit,branchSha)) return {number,status:'not-contained'};
-    const values={kind:'issue',main:this.c.branches.main,branch:completion.branch,prUrl:completion.pr?`https://github.com/${this.gh.repository}/pull/${completion.pr}`:'direct source integration',commitUrl:`https://github.com/${this.gh.repository}/commit/${completion.commit}`,tryNextUrl:this.c.branches.tryNextUrl};
+    const values={kind:'issue',main:this.c.branches.main,branch:completion.branch,prUrl:completion.pr?`https://github.com/${this.gh.repository}/pull/${completion.pr}`:'direct source integration',commitSha:completion.commit,tryNextUrl:this.c.branches.tryNextUrl};
     const purpose=p.type==='fixed'?'fixedMain':'awaitingRelease';
     const labels=issue.labels.map(x=>x.name??x);
     const suppress=labels.includes(this.c.labels['control.no-auto-reply'])||labels.includes(this.c.labels['control.manual-triage']);

@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { configure,glob,effectiveConfiguration } from '../src/config.mjs';
 import { wantsReopen,completionRefs,marker,ownerCardLabels,record,render } from '../src/text.mjs';
 import { GitHub } from '../src/github.mjs';
-import { sizePR } from '../src/runner.mjs';
 import { fixture,actor,reporter } from './fixture.mjs';
 
 for(const [body,expected] of [
@@ -64,17 +63,10 @@ test('provider errors expose status without echoing credential-containing bodies
  const gh=new GitHub({repository:'Wolf/project',readToken:'fixture-read',fetcher:async()=>new Response('secret contents',{status:403})});
  await assert.rejects(gh.get('/issues/7'),e=>e.status===403&&!e.message.includes('secret contents'));
 });
-test('diffdevil gets the App writer through its finite adapter, trusted arguments, and no private key or shell',async()=>{
-  const f=fixture({pr:true,overrides:{diffdevil:{enabled:true,adapter:'diffdevil-cli-v1',args:['verified-interface','{repository}','{number}','{head}']}}});
-  let call;await sizePR(f.gh,f.c,7,true,{execute:async(...args)=>{call=args;}});
-  assert.equal(call[0],'diffdevil');assert.equal(call[1][2],'7');assert.equal(call[2].shell,false);
-  assert.equal(call[2].env.GH_TOKEN,'fixture-only');assert(!Object.hasOwn(call[2].env,'AUTOMATON_PRIVATE_KEY'));
+test('Forgehand rejects the retired local diffdevil adapter instead of competing with the managed App',()=>{
+  assert.throws(()=>configure({diffdevil:{enabled:true}}),/Unknown configuration key/);
 });
-test('policy cannot select a different executable for diffdevil',()=>{
-  assert.throws(()=>configure({diffdevil:{enabled:true,adapter:'arbitrary-program',args:['measure']}}),/supported diffdevil adapter/);
-  assert.throws(()=>configure({diffdevil:{enabled:true,command:'arbitrary-program',args:['measure']}}),/Unknown diffdevil.command/);
-});
-test('diffdevil dry run never invokes a writing command',async()=>{
- const f=fixture({pr:true,overrides:{diffdevil:{enabled:true,args:['{number}']}}});let called=false;
- const result=await sizePR(f.gh,f.c,7,false,{execute:async()=>{called=true;}});assert.equal(result.status,'dry-run');assert.equal(called,false);
+test('company defaults leave both Issue and PR inactivity unavailable until selected',()=>{
+  const c=configure({profile:'company'});
+  assert.equal(c.inactivity.issues,false);assert.equal(c.inactivity.prs,false);
 });

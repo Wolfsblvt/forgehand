@@ -1,14 +1,13 @@
 export const messages = {
-  staleWarning: 'There have been no non-bot replies for {{afterDays}} days. This {{kind}} will be closed after {{deadline}} unless someone replies or a maintainer applies {{keepOpenLabel}}. Label edits, commits and reactions do not reset this timer.',
-  staleClosed: 'Closed automatically after the inactivity warning. This does not mean the report was fixed or rejected on its merits.\n\nTo reopen, reply explaining why it still needs attention and include **{{phrase}}**. This route applies only to this automated timeout, not a later maintainer closure.',
-  staleClosedManual: 'Closed automatically after the inactivity warning. This is not a declaration that the report was fixed. Automatic reopening is unavailable for this episode; a maintainer must reopen it.',
-  responseClosedManual: 'Closed automatically because the request in {{requestUrl}} remained unanswered. Automatic reopening is unavailable for this episode following maintainer intervention or the adopted reopening policy; a maintainer must reopen it.',
-  responseRequest: 'An essential response is requested from @{{receiver}} in {{requestUrl}}. The separate response timer starts from that request. A reply stops the no-response consequence; it does not prove the information is sufficient.',
-  responseWarning: '@{{receiver}}, the request in {{requestUrl}} still needs your response. This {{kind}} will be closed after {{deadline}} without a reply. Other people’s replies renew general activity but do not answer this request.',
-  responseClosed: 'Closed automatically because the request in {{requestUrl}} did not receive a reply before the warning deadline.\n\nTo reopen, provide the requested details or explain why it still needs attention and include **{{phrase}}**. Anyone affected may use this route. Reopening returns it to triage, not approval or a declaration that the question was answered.',
-  reopened: 'Reopened following an explicit **{{phrase}}** request. This returns the {{kind}} to triage; it does not approve implementation or declare missing information complete.',
-  responseReceived: 'A reply to the response request has arrived. The no-response timer has stopped; the requested information still needs ordinary triage.',
-  awaitingRelease: 'The change addressing this issue has been merged into **{{branch}}** in {{prUrl}} and is available there to use and test. It is not in stable **{{main}}** yet.\n\nTo try it: {{tryNextUrl}}. Please report whether it resolves the original problem.',
-  fixedMain: 'The change addressing this issue is now included in stable **{{main}}** source: {{commitUrl}} ({{prUrl}}). This issue is closed as fixed in that source.\n\nA packaged release, deployment, or app/extension-store update may follow later. This message does not claim that every distribution channel already contains the change.',
-  closeAborted: 'The automatic closure was cancelled because the current discussion or policy changed before the close could be applied.'
+  staleWarning: 'There have been no new replies for {{afterDays}} days.\n\nReply by {{deadline}} if this {{kind}} still needs attention. Without a reply, it will close automatically.',
+  staleClosed: 'Closed after the inactivity warning expired.\n\nThis does not mean the report was fixed or rejected. To request reopening, reply with a brief reason and include **{{phrase}}**.',
+  staleClosedManual: 'Closed after the inactivity warning expired.\n\nAutomatic reopening is not available for this closure. A maintainer must reopen it.',
+  responseClosedManual: 'Closed because the question in {{requestUrl}} received no response before the deadline.\n\nAutomatic reopening is not available for this closure. A maintainer must reopen it.',
+  responseRequest: 'A response is needed from @{{receiver}} to the question in {{requestUrl}}.',
+  responseWarning: '@{{receiver}}, the question in {{requestUrl}} still needs a response.\n\nWithout one by {{deadline}}, this {{kind}} will close automatically.',
+  responseClosed: 'Closed because the question in {{requestUrl}} received no response before the deadline.\n\nTo request reopening, reply with the requested information or a brief reason and include **{{phrase}}**.',
+  reopened: 'Reopened after an explicit **{{phrase}}** request.\n\nThis returns the {{kind}} to triage. It does not approve the request or confirm that missing information is complete.',
+  awaitingRelease: 'The change for this issue is available on **{{branch}}** in {{prUrl}}.\n\nIt is not in stable **{{main}}** yet. To try it: {{tryNextUrl}}',
+  fixedMain: 'The change for this issue is now in stable **{{main}}** source: {{prUrl}} ({{commitSha}}).\n\nThis issue is closed as fixed in source. A package or deployment may follow later.',
+  closeAborted: 'Automatic closure was cancelled because the discussion or policy changed before it could be applied.'
 };

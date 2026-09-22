@@ -1,29 +1,8 @@
 {
   "schemaVersion": 1,
   "labelPolicy": ".github/label-policy.json",
-  "branches": {
-    "main": "main",
-    "next": "next",
-    "tryNextUrl": "https://example.invalid/replace-with-your-real-next-testing-guide"
-  },
-  "gate": {
-    "enabled": true,
-    "protectMain": true,
-    "allowedMainLabels": [
-      "local.hotfix"
-    ]
-  },
-  "labels": {
-    "local.hotfix": "Hotfix"
-  },
-  "replies": {
-    "needs.tests": {
-      "message": "Testing is needed before we can settle this change. Follow the concrete request in this discussion and report what you observed."
-    }
-  },
-  "diffdevil": {
-    "enabled": false,
-    "adapter": "diffdevil-cli-v1",
-    "args": []
-  }
+  "branches": { "main": "main", "next": "next", "tryNextUrl": "https://example.invalid/replace-with-your-real-next-testing-guide" },
+  "gate": { "enabled": true, "protectMain": true, "allowedMainLabels": ["local.hotfix"] },
+  "labels": { "local.hotfix": "Hotfix" },
+  "replies": { "needs.tests": { "message": "Testing is needed before we can settle this change. Follow the concrete request in this discussion and report what you observed." } }
 }

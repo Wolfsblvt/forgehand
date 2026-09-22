@@ -84,6 +84,30 @@
       }
     },
     {
+      "key": "state.duplicate",
+      "name": "🏷️ Duplicate",
+      "color": "CFD3D7",
+      "description": "[ISSUE][PR] A maintainer selected another current subject for this discussion.",
+      "appliesTo": ["issue", "pr"],
+      "owner": { "issue": "agent", "pr": "agent" }
+    },
+    {
+      "key": "state.not-planned",
+      "name": "🏷️ Not Planned",
+      "color": "CFD3D7",
+      "description": "[ISSUE][PR] A maintainer selected a documented no-plan disposition.",
+      "appliesTo": ["issue", "pr"],
+      "owner": { "issue": "agent", "pr": "agent" }
+    },
+    {
+      "key": "state.superseded",
+      "name": "🏷️ Superseded",
+      "color": "CFD3D7",
+      "description": "[ISSUE][PR] A maintainer selected a replacement subject for this work.",
+      "appliesTo": ["issue", "pr"],
+      "owner": { "issue": "agent", "pr": "agent" }
+    },
+    {
       "key": "control.keep-open",
       "name": "🛠️ Keep Open",
       "color": "B85C38",

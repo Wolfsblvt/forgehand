@@ -300,25 +300,6 @@
         }
       }
     },
-    "diffdevil": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "adapter": {
-          "type": "string",
-          "enum": ["diffdevil-cli-v1"]
-        },
-        "args": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "cleanup": {
       "type": "array",
       "items": {

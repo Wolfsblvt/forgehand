@@ -1,15 +1,9 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { configure, merge, effectiveConfiguration } from './config.mjs';
 import { GitHub } from './github.mjs';
 import { Engine } from './engine.mjs';
 import { appToken } from './auth.mjs';
 import { labelPolicy } from './label-policy.mjs';
 import { completionRefs, record } from './text.mjs';
-const exec=promisify(execFile);
-const diffdevilAdapters = Object.freeze({
-  'diffdevil-cli-v1': Object.freeze({ command: 'diffdevil' })
-});
 
 export async function loadPolicy(gh,path) {
   const repository=await gh.get('');
@@ -34,35 +28,6 @@ export async function loadPolicy(gh,path) {
   const config=configure(selected);
   config.labelScopes=applicability;
   return {config,raw:selected,branch,sha,repository};
-}
-
-/** diffdevil remains the only size/reply writer for its domain. Its executable is a finite runtime-owned adapter. */
-export async function sizePR(gh,c,number,apply,{execute=exec}={}) {
-  if(!c.diffdevil.enabled) return {status:'not-enabled',owner:'diffdevil'};
-  const pr=await gh.get(`/pulls/${number}`);
-  if(pr.state!=='open') return {status:'not-open'};
-  const issue=await gh.get(`/issues/${number}`);
-  if(issue.labels.some(l=>(l.name??l)===c.labels['control.manual-triage'])) return {status:'manual-triage'};
-  const values={repository:gh.repository,number:String(number),head:pr.head.sha,base:pr.base.sha};
-  const adapter=diffdevilAdapters[c.diffdevil.adapter];
-  if(!adapter) throw new Error('Unsupported diffdevil adapter');
-  const args=c.diffdevil.args.map(a=>{
-    if(typeof a!=='string') throw new Error('diffdevil arguments must be strings');
-    return a.replace(/\{(repository|number|head|base)\}/g,(_,k)=>values[k]);
-  });
-  if(!apply) return {status:'dry-run',adapter:c.diffdevil.adapter,args};
-  if(!gh.writeToken) throw new Error('diffdevil requires the bounded App token for its own label/reply writes');
-  // Never forward the private key, the whole process environment, or event-controlled shell source.
-  const env={PATH:process.env.PATH,HOME:process.env.HOME,LANG:'C.UTF-8',GH_TOKEN:gh.writeToken,GITHUB_TOKEN:gh.writeToken,GH_REPO:gh.repository,CI:'true'};
-  try { await execute(adapter.command,args,{env,shell:false,windowsHide:true,maxBuffer:8*1024*1024}); }
-  catch(error) { throw new Error(`diffdevil execution failed (${Number.isInteger(error.code)?error.code:'process error'}); inspect its qualified invocation without printing credential-bearing process output`); }
-  const current=await gh.get(`/pulls/${number}`);
-  if(current.head.sha!==pr.head.sha||current.base.sha!==pr.base.sha) throw new Error('diffdevil comparison moved during execution; rerun before claiming current size');
-  const observed=await gh.get(`/issues/${number}`);
-  const sizeNames=Object.entries(c.labels).filter(([k])=>k.startsWith('size.')).map(([,v])=>v);
-  const sizeLabels=observed.labels.map(x=>x.name??x).filter(x=>sizeNames.includes(x));
-  if(sizeNames.length && sizeLabels.length!==1) throw new Error('diffdevil did not leave exactly one configured size label; inspect its qualified label mode');
-  return {status:'executed',head:pr.head.sha,base:pr.base.sha,sizeLabels};
 }
 
 export async function gatePR(gh,c,number,apply) {
@@ -128,7 +93,7 @@ export async function runEvent({github:gh,policy,event,eventName,apply=false,now
     if(issue.pull_request) {
       const pr=await gh.get(`/pulls/${number}`);
       if(pr.merged) { await attempt(()=>engine.merged(number)); await attempt(()=>engine.releaseSweep()); await attempt(()=>gatePR(gh,c,number,apply)); }
-      else { await attempt(()=>engine.reconcile(number)); await engine.policyCurrent(); await attempt(()=>sizePR(gh,c,number,apply)); await attempt(()=>gatePR(gh,c,number,apply)); }
+      else { await attempt(()=>engine.reconcile(number)); await engine.policyCurrent(); await attempt(()=>gatePR(gh,c,number,apply)); }
     } else await attempt(()=>engine.reconcile(number));
   } else if(eventName==='schedule'||eventName==='workflow_dispatch') {
     for(const item of await gh.pages('/issues?state=all')) await attempt(()=>engine.reconcile(item.number));
@@ -140,7 +105,7 @@ export async function runEvent({github:gh,policy,event,eventName,apply=false,now
     // Missed metadata events also converge; no dependence on a lossy hook queue.
     for(const pr of await gh.pages('/pulls?state=open')) {
       await engine.policyCurrent();
-      await attempt(()=>sizePR(gh,c,pr.number,apply)); await attempt(()=>gatePR(gh,c,pr.number,apply));
+      await attempt(()=>gatePR(gh,c,pr.number,apply));
     }
   } else if(eventName==='push') {
     const branch=event.ref?.replace(/^refs\/heads\//,'');
