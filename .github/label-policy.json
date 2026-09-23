@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "labels": [
+    {
+      "key": "type.bug",
+      "name": "🏷️ Bug",
+      "color": "B65D76",
+      "description": "[ISSUE][PR] Reports a defect or proposes its fix; does not imply confirmation or approval.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "needs.triage",
+      "name": "🧭 Needs Triage",
+      "color": "D4A017",
+      "description": "[ISSUE][PR] Initial repository triage is still missing; remove after that triage.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "needs.tests",
+      "name": "🧭 Needs Testing",
+      "color": "D4A017",
+      "description": "[ISSUE][PR] Requested testing or verification evidence is missing; remove when supplied.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "state.stale",
+      "name": "⏳ Stale",
+      "color": "0E8A7A",
+      "description": "[ISSUE][PR] Meets the adopted inactivity rule; the active warning still governs closure.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "automaton",
+        "pr": "automaton"
+      }
+    },
+    {
+      "key": "state.awaiting-response",
+      "name": "⏳ Awaiting Response",
+      "color": "0E8A7A",
+      "description": "[ISSUE][PR] A concrete request awaits a reply; remove when the wait ends.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "automaton",
+        "pr": "automaton"
+      }
+    },
+    {
+      "key": "state.awaiting-release",
+      "name": "⏳ Awaiting Release",
+      "color": "0E8A7A",
+      "description": "[ISSUE] Implemented on the named development line, but not yet in stable main source.",
+      "appliesTo": [
+        "issue"
+      ],
+      "owner": {
+        "issue": "automaton"
+      }
+    },
+    {
+      "key": "state.duplicate",
+      "name": "🏷️ Duplicate",
+      "color": "CFD3D7",
+      "description": "[ISSUE][PR] A maintainer selected another current subject for this discussion.",
+      "appliesTo": ["issue", "pr"],
+      "owner": { "issue": "agent", "pr": "agent" }
+    },
+    {
+      "key": "state.not-planned",
+      "name": "🏷️ Not Planned",
+      "color": "CFD3D7",
+      "description": "[ISSUE][PR] A maintainer selected a documented no-plan disposition.",
+      "appliesTo": ["issue", "pr"],
+      "owner": { "issue": "agent", "pr": "agent" }
+    },
+    {
+      "key": "state.superseded",
+      "name": "🏷️ Superseded",
+      "color": "CFD3D7",
+      "description": "[ISSUE][PR] A maintainer selected a replacement subject for this work.",
+      "appliesTo": ["issue", "pr"],
+      "owner": { "issue": "agent", "pr": "agent" }
+    },
+    {
+      "key": "control.keep-open",
+      "name": "🛠️ Keep Open",
+      "color": "B85C38",
+      "description": "[ISSUE][PR] Exempt from general inactivity closure; remove when protection no longer applies.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "control.manual-triage",
+      "name": "🛠️ Manual Triage",
+      "color": "B85C38",
+      "description": "[ISSUE][PR] Pause managed labels and policy replies until this is removed.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "control.no-auto-reply",
+      "name": "🛠️ No Auto-reply",
+      "color": "B85C38",
+      "description": "[ISSUE][PR] Suppress policy replies only; factual label reconciliation continues.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "size.xs",
+      "name": "📏 Size: XS",
+      "color": "6B7280",
+      "description": "[PR] 0-19 review lines after exclusions; paired replacements count once, not a risk estimate.",
+      "appliesTo": [
+        "pr"
+      ],
+      "owner": {
+        "pr": "automaton"
+      }
+    },
+    {
+      "key": "size.s",
+      "name": "📏 Size: S",
+      "color": "6B7280",
+      "description": "[PR] 20-99 review lines after exclusions; paired replacements count once, not a risk estimate.",
+      "appliesTo": [
+        "pr"
+      ],
+      "owner": {
+        "pr": "automaton"
+      }
+    },
+    {
+      "key": "size.m",
+      "name": "📏 Size: M",
+      "color": "6B7280",
+      "description": "[PR] 100-499 review lines after exclusions; paired replacements count once, not a risk estimate.",
+      "appliesTo": [
+        "pr"
+      ],
+      "owner": {
+        "pr": "automaton"
+      }
+    },
+    {
+      "key": "size.l",
+      "name": "📏 Size: L",
+      "color": "6B7280",
+      "description": "[PR] 500-999 review lines after exclusions; paired replacements count once, not a risk estimate.",
+      "appliesTo": [
+        "pr"
+      ],
+      "owner": {
+        "pr": "automaton"
+      }
+    },
+    {
+      "key": "size.xl",
+      "name": "📏 Size: XL",
+      "color": "6B7280",
+      "description": "[PR] 1000+ review lines after exclusions; paired replacements count once, not a risk estimate.",
+      "appliesTo": [
+        "pr"
+      ],
+      "owner": {
+        "pr": "automaton"
+      }
+    },
+    {
+      "key": "size.unknown",
+      "name": "📏 Size: Unknown",
+      "color": "6B7280",
+      "description": "[PR] A complete meaningful review-line count is unavailable; inspect the recorded reason.",
+      "appliesTo": [
+        "pr"
+      ],
+      "owner": {
+        "pr": "automaton"
+      }
+    },
+    {
+      "key": "type.feature",
+      "name": "🏷️ Feature",
+      "color": "1D76DB",
+      "description": "[ISSUE][PR] Proposes or adds a new capability; not a commitment to build it.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "type.improvement",
+      "name": "🏷️ Improvement",
+      "color": "1D76DB",
+      "description": "[ISSUE][PR] Improves an existing capability rather than primarily fixing a defect.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "type.refactor",
+      "name": "🏷️ Refactor",
+      "color": "1D76DB",
+      "description": "[ISSUE][PR] Restructures implementation without an intended behaviour change.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "type.documentation",
+      "name": "🏷️ Documentation",
+      "color": "1D76DB",
+      "description": "[ISSUE][PR] Documentation is the primary requested or delivered outcome.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "type.tests",
+      "name": "🏷️ Tests",
+      "color": "1D76DB",
+      "description": "[ISSUE][PR] Test coverage or test infrastructure is the primary outcome.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "type.maintenance",
+      "name": "🏷️ Maintenance",
+      "color": "1D76DB",
+      "description": "[ISSUE][PR] Dependency, tooling, or repository upkeep is the primary outcome.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "needs.info",
+      "name": "🧭 Needs Information",
+      "color": "D4A017",
+      "description": "[ISSUE][PR] Requested facts are missing; remove when the specific information is supplied.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "needs.reproduction",
+      "name": "🧭 Needs Reproduction",
+      "color": "D4A017",
+      "description": "[ISSUE][PR] A requested reproducer or reproduction result is missing; remove when supplied.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    },
+    {
+      "key": "area.runtime",
+      "name": "🧩 Runtime",
+      "color": "1D76DB",
+      "description": "[PR] Changes Forgehand runtime behavior or its executable entry points.",
+      "appliesTo": ["pr"],
+      "owner": { "pr": "automaton" },
+      "paths": { "include": ["src/**", "action.yml", ".github/workflows/automation.yml"], "exclude": [] }
+    },
+    {
+      "key": "area.adoption",
+      "name": "🧩 Adoption",
+      "color": "1D76DB",
+      "description": "[PR] Changes installer, repository policy examples or adoption source.",
+      "appliesTo": ["pr"],
+      "owner": { "pr": "automaton" },
+      "paths": { "include": ["tools/install.mjs", "examples/**", ".github/automation/**", ".github/label-policy.json", ".diffdevil.yml", ".github/workflows/repository-automation.yml"], "exclude": [] }
+    },
+    {
+      "key": "area.docs",
+      "name": "🧩 Documentation",
+      "color": "1D76DB",
+      "description": "[PR] Changes product documentation or the repository front door.",
+      "appliesTo": ["pr"],
+      "owner": { "pr": "automaton" },
+      "paths": { "include": ["docs/**", "README.md"], "exclude": [] }
+    },
+    {
+      "key": "needs.explanation",
+      "name": "🧭 Needs Explanation",
+      "color": "D4A017",
+      "description": "[ISSUE][PR] The requested intent or trade-off explanation is missing; remove when supplied.",
+      "appliesTo": [
+        "issue",
+        "pr"
+      ],
+      "owner": {
+        "issue": "agent",
+        "pr": "agent"
+      }
+    }
+  ],
+  "size": {
+    "metric": "replacement-lines-v1",
+    "upperExclusive": {
+      "xs": 20,
+      "s": 100,
+      "m": 500,
+      "l": 1000
+    },
+    "exclude": [],
+    "forceInclude": [],
+    "includeOnly": []
+  }
+}

@@ -1,0 +1,41 @@
+# Creation template. install.mjs replaces both runtime coordinates with the same reviewed source.
+name: Forgehand
+on:
+  issues:
+    types: [opened, edited, reopened, closed, labeled, unlabeled]
+  issue_comment:
+    types: [created, edited, deleted]
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled, ready_for_review, converted_to_draft, closed]
+  push:
+    branches: [main, next]
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+    inputs:
+      number:
+        description: Issue/PR number; leave empty for complete repository reconciliation.
+        type: string
+        required: false
+      apply:
+        description: Apply the selected mechanical policy, rather than preview it.
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  checks: read
+jobs:
+  reconcile:
+    # Forks inherit source, not an installation grant. The repository-scoped enable flag is absent in forks.
+    if: vars.FORGEHAND_ENABLED == 'true'
+    uses: Wolfsblvt/forgehand/.github/workflows/automation.yml@f43b38f3599c099799d21f9db0065213536a13a3
+    with:
+      runtime-repository: Wolfsblvt/forgehand
+      runtime-ref: f43b38f3599c099799d21f9db0065213536a13a3
+      policy: .github/automation/policy.json
+      apply: ${{ github.event_name != 'workflow_dispatch' || inputs.apply }}
+      app-client-id: ${{ vars.WOLFSBLVT_AUTOMATON_CLIENT_ID }}
+    secrets:
+      app-private-key: ${{ secrets.WOLFSBLVT_AUTOMATON_PRIVATE_KEY }}

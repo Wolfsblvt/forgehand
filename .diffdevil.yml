@@ -1,0 +1,12 @@
+version: 1
+presets:
+  - size@1
+rules:
+  xl-reply:
+    when: bands.size == "xl"
+    onUnknown: hold
+    effects:
+      comment:
+        mode: once-per-transition
+        trigger: matched
+        templateFile: .github/automation/messages/diffdevil-xl.md
