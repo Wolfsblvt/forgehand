@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "profile": "product",
+  "labelPolicy": ".github/label-policy.json",
+  "branches": { "main": "main", "next": null },
+  "messages": {
+    "staleWarning": { "file": ".github/automation/messages/inactivity-warning.md" },
+    "staleClosed": { "file": ".github/automation/messages/inactivity-closed.md" },
+    "staleClosedManual": { "file": ".github/automation/messages/inactivity-closed-manual.md" },
+    "responseRequest": { "file": ".github/automation/messages/response-request.md" },
+    "responseWarning": { "file": ".github/automation/messages/response-warning.md" },
+    "responseClosed": { "file": ".github/automation/messages/response-closed.md" },
+    "responseClosedManual": { "file": ".github/automation/messages/response-closed-manual.md" },
+    "reopened": { "file": ".github/automation/messages/reopened.md" },
+    "awaitingRelease": { "file": ".github/automation/messages/awaiting-release.md" },
+    "fixedMain": { "file": ".github/automation/messages/fixed-main.md" },
+    "closeAborted": { "file": ".github/automation/messages/close-aborted.md" }
+  },
+  "replies": {
+    "needs.tests": { "message": { "file": ".github/automation/messages/needs-testing.md" } },
+    "needs.info": { "message": { "file": ".github/automation/messages/needs-information.md" } },
+    "needs.reproduction": { "message": { "file": ".github/automation/messages/needs-reproduction.md" } },
+    "needs.explanation": { "message": { "file": ".github/automation/messages/needs-explanation.md" } }
+  },
+  "resolutions": {
+    "state.duplicate": { "reason": "not_planned", "requiresReference": true, "message": { "file": ".github/automation/messages/duplicate.md" } },
+    "state.not-planned": { "reason": "not_planned", "message": { "file": ".github/automation/messages/not-planned.md" } },
+    "state.superseded": { "reason": "not_planned", "requiresReference": true, "message": { "file": ".github/automation/messages/superseded.md" } }
+  }
+}
