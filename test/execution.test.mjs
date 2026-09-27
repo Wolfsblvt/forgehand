@@ -198,10 +198,11 @@ const authArgs=f=>({repository:'Wolf/project',clientId:'fixture-client',privateK
 test('App authentication mints only current-repository metadata effects',async()=>{
   const f=authFixture();const r=await appToken(authArgs(f));assert.equal(r.slug,'wolfsblvt-automaton');
   const p=JSON.parse(f.calls.at(-1).options.body).permissions;
-  assert.deepEqual(p,{contents:'read',issues:'write',pull_requests:'write'});assert(!('checks' in p));
+  assert.deepEqual(p,{issues:'write',pull_requests:'write'});assert(!('checks' in p));
 });
 test('Checks write is only requested when the actual gate is selected',async()=>{
-  const f=authFixture();await appToken({...authArgs(f),checks:true});assert.equal(JSON.parse(f.calls.at(-1).options.body).permissions.checks,'write');
+  const f=authFixture();await appToken({...authArgs(f),checks:true});
+  assert.deepEqual(JSON.parse(f.calls.at(-1).options.body).permissions,{issues:'write',pull_requests:'write',checks:'write'});
 });
 test('wrong App identity fails before token issuance',async()=>{
   const f=authFixture({slug:'someone-else'});await assert.rejects(appToken(authArgs(f)),/different GitHub App/);assert.equal(f.calls.length,1);
@@ -210,6 +211,51 @@ test('an unexpectedly broad token is revoked rather than used',async()=>{
   const f=authFixture({extra:{contents:'write'}});await assert.rejects(appToken(authArgs(f)),/Unexpected installation-token permissions/);
   assert.equal(f.calls.at(-1).options.method,'DELETE');assert.equal(f.calls.at(-1).url,'https://api.github.com/installation/token');
 });
+test('an installation token with even read-only Contents is refused and revoked',async()=>{
+  const f=authFixture({extra:{contents:'read'}});await assert.rejects(appToken(authArgs(f)),/Unexpected installation-token permissions/);
+  assert.equal(f.calls.at(-1).options.method,'DELETE');
+});
 test('a token for extra repositories is refused and revoked',async()=>{
   const f=authFixture({repos:[{full_name:'Wolf/project'},{full_name:'Wolf/private'}]});await assert.rejects(appToken(authArgs(f)),/exactly this repository/);assert.equal(f.calls.at(-1).options.method,'DELETE');
+});
+
+function credentialSplitFixture({staleAfterMint=false}={}) {
+  const sha='a'.repeat(40),changedSha='b'.repeat(40);
+  const issue={number:7,title:'A new issue',created_at:new Date().toISOString(),updated_at:new Date().toISOString(),state:'open',locked:false,labels:[],user:reporter};
+  const calls=[];let minted=false;
+  const fetcher=async(url,options)=>{
+    const path=new URL(url).pathname;
+    calls.push({path,method:options.method,authorization:options.headers.Authorization});
+    if(options.method==='GET') assert.equal(options.headers.Authorization,'Bearer workflow-read');
+    else assert.equal(options.headers.Authorization,'Bearer automaton-write');
+    if(options.method==='DELETE'&&path==='/installation/token') return response(null,204);
+    if(options.method==='GET'&&path==='/repos/Wolf/project') return response({default_branch:'main'});
+    if(options.method==='GET'&&path==='/repos/Wolf/project/git/ref/heads/main') return response({object:{sha:minted&&staleAfterMint?changedSha:sha}});
+    if(options.method==='GET'&&path==='/repos/Wolf/project/contents/policy.json') return response({type:'file',encoding:'base64',content:Buffer.from('{}').toString('base64')});
+    if(options.method==='GET'&&path==='/repos/Wolf/project/issues/7') return response(issue);
+    if(options.method==='GET'&&['/repos/Wolf/project/issues/7/comments','/repos/Wolf/project/issues/7/timeline'].includes(path)) return response([]);
+    if(options.method==='GET'&&path==='/repos/Wolf/project/labels') return response([{name:configure({}).labels['needs.triage']}]);
+    if(options.method==='POST'&&path==='/repos/Wolf/project/issues/7/labels') {
+      issue.labels.push({name:JSON.parse(options.body).labels[0]});return response(issue.labels);
+    }
+    throw new Error(`Unexpected provider request ${options.method} ${path}`);
+  };
+  return {
+    issue,calls,
+    execute:()=>execute({repository:'Wolf/project',policyPath:'policy.json',event:{issue:{number:7}},eventName:'issues',apply:true,readToken:'workflow-read',fetcher,mintToken:async()=>{minted=true;return {token:'automaton-write'};}})
+  };
+}
+test('apply revalidates source with the workflow reader and writes only with the App',async()=>{
+  const f=credentialSplitFixture();const result=await f.execute();
+  assert.equal(result.status,'complete');
+  assert.deepEqual(f.issue.labels,[{name:configure({}).labels['needs.triage']}]);
+  assert(f.calls.some(c=>c.path==='/repos/Wolf/project/git/ref/heads/main'&&c.authorization==='Bearer workflow-read'));
+  assert.deepEqual(f.calls.filter(c=>c.method==='POST').map(c=>[c.path,c.authorization]),[['/repos/Wolf/project/issues/7/labels','Bearer automaton-write']]);
+  assert(f.calls.some(c=>c.method==='DELETE'&&c.path==='/installation/token'&&c.authorization==='Bearer automaton-write'));
+});
+test('a changed default-branch source after planning stops apply before any App write',async()=>{
+  const f=credentialSplitFixture({staleAfterMint:true});const result=await f.execute();
+  assert.equal(result.status,'partial-failure');assert(result.errors.some(e=>e.includes('Trusted policy branch changed')));
+  assert.deepEqual(f.issue.labels,[]);assert.equal(f.calls.filter(c=>c.method==='POST').length,0);
+  assert(f.calls.some(c=>c.method==='DELETE'&&c.path==='/installation/token'));
 });

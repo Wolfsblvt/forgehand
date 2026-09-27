@@ -32,8 +32,9 @@ integration; it never merges, publishes, deploys, changes repository settings, o
 The ordinary workflow token has only Contents/Issues/PR **read** permissions. API reads, accepted policy loading, and the
 current read-only plan do not require a personal write token or the App private-key route. Only a non-empty current plan
 enters apply mode, verifies the selected App identity, and mints a short-lived installation token for **exactly the
-current repository**. It requests Contents read, Issues write, and PRs write. Checks write is requested only when the
-optional actual policy-check implementation is selected. No Contents write, Actions write, administration,
+current repository**. It requests Issues write and PRs write; source reads and apply-time revalidation keep using the
+workflow's read token. Checks write is requested only when the optional actual policy-check implementation is selected.
+No Contents permission, Actions write, administration,
 collective-agent credential, or automatic user-token fallback is used.
 
 Supply `WOLFSBLVT_AUTOMATON_CLIENT_ID` as the selected variable and `WOLFSBLVT_AUTOMATON_PRIVATE_KEY` through the approved
