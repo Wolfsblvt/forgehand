@@ -17,7 +17,7 @@ export async function appToken({repository,clientId,privateKey,expectedSlug,chec
   if(app.slug!==expectedSlug) throw new Error('The credential belongs to a different GitHub App');
   const installation=await request('GET',`/repos/${repository}/installation`);
   if(installation.app_id!==app.id) throw new Error('App installation mismatch');
-  const permissions={contents:'read',issues:'write',pull_requests:'write',...(checks?{checks:'write'}:{})};
+  const permissions={issues:'write',pull_requests:'write',...(checks?{checks:'write'}:{})};
   const token=await request('POST',`/app/installations/${installation.id}/access_tokens`,{repositories:[repository.split('/')[1]],permissions});
   const refuse=async(message)=>{
     if(token.token) {
