@@ -29,7 +29,7 @@ integration; it never merges, publishes, deploys, changes repository settings, o
 
 ## Token and trusted-code boundary
 
-The ordinary workflow token has only Contents/Issues/PR **read** permissions. API reads, accepted policy loading, and the
+The ordinary workflow token has only Contents/Issues/PR/Checks **read** permissions. API reads, accepted policy loading, and the
 current read-only plan do not require a personal write token or the App private-key route. Only a non-empty current plan
 enters apply mode, verifies the selected App identity, and mints a short-lived installation token for **exactly the
 current repository**. It requests Issues write and PRs write; source reads and apply-time revalidation keep using the
