@@ -1,6 +1,14 @@
 version: 1
 presets:
   - size@1
+size:
+  labels:
+    xs: '📏 Size: XS'
+    s: '📏 Size: S'
+    m: '📏 Size: M'
+    l: '📏 Size: L'
+    xl: '📏 Size: XL'
+    unknown: '📏 Size: Unknown'
 rules:
   xl-reply:
     when: metrics.review >= 1000

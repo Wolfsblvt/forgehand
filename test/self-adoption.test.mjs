@@ -34,6 +34,35 @@ test('self-adoption source pins the published runtime twice and leaves the calle
   assert.ok(first.changes.some(change => change.path === '.github/label-policy.json' && change.state === 'different-local-content'));
 });
 
+test('diffdevil size policy assigns the repository-owned size labels, not the preset names', async () => {
+  for (const [policy, labels] of [['.diffdevil.yml', '.github/label-policy.json'], ['examples/diffdevil.yml', 'examples/label-policy.json']]) {
+    const source = await file(policy);
+    const block = source.match(/^size:\n  labels:\n((?: {4}\w+: '[^']+'\n)+)/m);
+    assert.ok(block, `${policy} maps size@1 onto named labels`);
+    const mapped = Object.fromEntries([...block[1].matchAll(/^ {4}(\w+): '([^']+)'$/gm)].map(match => [match[1], match[2]]));
+    const owned = JSON.parse(await file(labels)).labels.filter(label => label.key.startsWith('size.'));
+    assert.deepEqual(mapped, Object.fromEntries(owned.map(label => [label.key.slice('size.'.length), label.name])));
+    assert.doesNotMatch(source, /size\/(XS|S|M|L|XL|Unknown)/);
+  }
+});
+
+test('interim Action sizing is one disabled Automaton writer reading only trusted base policy', async () => {
+  const workflow = await file('.github/workflows/diffdevil.yml');
+  assert.match(workflow, /^on:\n {2}pull_request_target:\n/m);
+  assert.match(workflow, /^permissions:\n {2}contents: read\n(?! )/m);
+  assert.match(workflow, /if: vars\.DIFFDEVIL_ACTION_ENABLED == 'true'/);
+  assert.doesNotMatch(workflow, /actions\/checkout/);
+  assert.match(workflow, /uses: actions\/create-github-app-token@[0-9a-f]{40} /);
+  assert.deepEqual([...workflow.matchAll(/^\s+([\w-]+): write$/gm)].map(match => match[1]), ['permission-issues', 'permission-pull-requests']);
+  assert.match(workflow, /uses: Wolfsblvt\/diffdevil@[0-9a-f]{40} /);
+  assert.match(workflow, /github-token: \$\{\{ steps\.automaton\.outputs\.token \}\}/);
+  assert.match(workflow, /policy-token: \$\{\{ github\.token \}\}/);
+  assert.match(workflow, /config: \.diffdevil\.yml\n/);
+  assert.doesNotMatch(workflow, /policy-source|policy-ref|workspace/);
+  assert.match(workflow, /definitions: none/);
+  assert.match(workflow, /comment-author: wolfsblvt-automaton\[bot\]\n\s+comment-author-id: '319117825'/);
+});
+
 test('self-adoption policy validates and renders every selected message without a live writer', async () => {
   const { config, mode } = await localPolicy('.github/automation/policy.json', root);
   assert.equal(mode, 'local-preview');
