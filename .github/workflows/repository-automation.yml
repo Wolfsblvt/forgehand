@@ -28,7 +28,7 @@ permissions:
   checks: read
 jobs:
   reconcile:
-    # Forks inherit source, not an installation grant. The repository-scoped enable flag is absent in forks.
+    # Fork PRs use this trusted base workflow and its enable flag; never execute PR-head code.
     if: vars.FORGEHAND_ENABLED == 'true'
     uses: Wolfsblvt/forgehand/.github/workflows/automation.yml@e02b0ad4176882ea57ed8e23ac2d6ee0eaa6d71a
     with:

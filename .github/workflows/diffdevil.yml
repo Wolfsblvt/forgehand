@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   size:
-    # Forks inherit source, not an installation grant. The repository-scoped enable flag is absent in forks.
+    # Fork PRs use this trusted base workflow and its enable flag; never execute PR-head code.
     if: vars.DIFFDEVIL_ACTION_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -23,6 +23,17 @@ jobs:
           private-key: ${{ secrets.WOLFSBLVT_AUTOMATON_PRIVATE_KEY }}
           permission-issues: write
           permission-pull-requests: write
+      - id: verify-automaton
+        name: Verify the answering App before any size write
+        env:
+          AUTOMATON_APP_SLUG: ${{ steps.automaton.outputs.app-slug }}
+        run: |
+          node --input-type=module <<'NODE'
+          if (process.env.AUTOMATON_APP_SLUG !== 'wolfsblvt-automaton') {
+            console.error('::error::DiffDevil refused: expected Wolfsblvt Automaton App identity.');
+            process.exit(1);
+          }
+          NODE
       - name: Size the pull request from trusted base policy
         uses: Wolfsblvt/diffdevil@0827485c9d3795ef58a7934cd7a4b8b3fb5cc9c5 # v1.0.0, inspected 2026-10-02
         with:
