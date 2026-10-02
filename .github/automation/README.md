@@ -2,7 +2,7 @@
 
 ## Meaning
 
-This is Forgehand's repository-owned product policy and message packet. It uses the public `v0.2.0` runtime recorded in [runtime-release.json](runtime-release.json). The reusable caller pins that release's exact commit in both coordinates. This source is a proposal until accepted on `main`; it does not enable a workflow, App, or lifecycle write.
+This is Forgehand's repository-owned product policy and message packet. It uses the public `v0.2.1` runtime recorded in [runtime-release.json](runtime-release.json). The reusable caller pins that release's exact commit in both coordinates. This source is a proposal until accepted on `main`; it does not enable a workflow, App, or lifecycle write.
 
 The `product` profile supplies Issue and pull-request inactivity (90 days plus a delivered 7-day warning), explicit necessary-response waits (14 plus 7 days), deliberate reopening, and stable `main` completion. There is no development line, so `next` and its try route remain unset. Owner-card projection and the hard gate stay off. [policy.json](policy.json) adds the repository's message files and maintainer-selected replies and resolutions. The repository's [label policy](../label-policy.json) adds actual runtime, adoption, and documentation PR areas to the shared product labels.
 
