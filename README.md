@@ -32,9 +32,13 @@ coordinate; it does not activate a consumer workflow or publish an npm package.
 Initial intake hints and PR path areas; maintainer-selected support replies and resolutions; real inactivity and
 necessary-response workflows; deliberate `still relevant` reopening; and concrete development/stable-source replies.
 The generated product packet includes repository-owned `.diffdevil.yml` and an XL-reply template for the managed
-**diffdevil** App. The App is the sole size-label, check, and XL-comment writer; Forgehand has no size parser or local
-diffdevil executable. Land that policy while App execution is disabled, then use the next ordinary pull request as the
-first honest managed-App trial.
+**diffdevil** App. Forgehand itself has no size parser or local diffdevil executable. Exactly one selected DiffDevil host
+owns size labels, checks, and the once-per-transition XL reply at a time. The managed App remains the final hosted
+writer. Forgehand's own self-adoption currently also contains a disabled repository Action route while the App cannot
+load its repository-owned XL template; that route may be enabled only after managed execution for Forgehand is suspended,
+proved on an ordinary pull request, and later handed back without overlapping writers or duplicate XL replies. The
+complete self-adoption boundary is documented in [`.github/automation/README.md`](.github/automation/README.md); the
+Action route is not part of a generated consumer packet merely because its source exists here.
 
 The defaults are intentionally straightforward: Issues and pull requests warn after **90 days without non-bot replies** and close after
 **7 further days**. Only replies reset the ordinary clock;
@@ -81,8 +85,10 @@ Issue/PR number. The [configuration guide](docs/configuration.md) explains contr
 
 A reusable workflow is supplied in [`.github/workflows/automation.yml`](.github/workflows/automation.yml).
 Repositories needing different composition can use [`action.yml`](action.yml) or the same CLI. These are entry points
-into one runtime, not three separate implementations. Do not add a custom diffdevil executable to that composition:
-the managed App owns the size-label, check, and XL-comment route.
+into one runtime, not three separate implementations. Forgehand does not parse sizes or choose the DiffDevil host:
+a consumer admits exactly one qualified writer for its size labels and XL reply. The managed App is the intended hosted
+route; Forgehand's repository-only Action is a bounded self-adoption bridge, disabled by default and governed by the
+one-writer transition above.
 
 ## Scope and support
 
