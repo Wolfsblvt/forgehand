@@ -30,10 +30,10 @@ jobs:
   reconcile:
     # Forks inherit source, not an installation grant. The repository-scoped enable flag is absent in forks.
     if: vars.FORGEHAND_ENABLED == 'true'
-    uses: Wolfsblvt/forgehand/.github/workflows/automation.yml@f43b38f3599c099799d21f9db0065213536a13a3
+    uses: Wolfsblvt/forgehand/.github/workflows/automation.yml@e02b0ad4176882ea57ed8e23ac2d6ee0eaa6d71a
     with:
       runtime-repository: Wolfsblvt/forgehand
-      runtime-ref: f43b38f3599c099799d21f9db0065213536a13a3
+      runtime-ref: e02b0ad4176882ea57ed8e23ac2d6ee0eaa6d71a
       policy: .github/automation/policy.json
       apply: ${{ github.event_name != 'workflow_dispatch' || inputs.apply }}
       app-client-id: ${{ vars.WOLFSBLVT_AUTOMATON_CLIENT_ID }}
