@@ -192,3 +192,7 @@ trial because the App reads policy from the pull request base revision.
 
 The managed App consumes the repository's accepted size policy, thresholds, exclusions, and completeness meaning. The
 lifecycle engine does not reimplement measurement or compete for those keys.
+
+The packet's `.diffdevil.yml` maps diffdevil's `size@1` labels onto the six size names in the label policy, so
+diffdevil assigns the definitions you provision rather than creating a parallel `size/*` set. Rename a size label in
+both files together.

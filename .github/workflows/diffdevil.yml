@@ -1,0 +1,36 @@
+# Forgehand's interim size writer. The managed diffdevil App replaces it once its template path is qualified.
+# Exactly one host may write size labels and the XL reply: enable this only while the App does not execute here.
+name: Pull-request size
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited]
+permissions:
+  contents: read
+concurrency:
+  group: diffdevil-size-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  size:
+    # Forks inherit source, not an installation grant. The repository-scoped enable flag is absent in forks.
+    if: vars.DIFFDEVIL_ACTION_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - id: automaton
+        name: Mint the Wolfsblvt Automaton writer for this repository
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0, inspected 2026-10-02
+        with:
+          client-id: ${{ vars.WOLFSBLVT_AUTOMATON_CLIENT_ID }}
+          private-key: ${{ secrets.WOLFSBLVT_AUTOMATON_PRIVATE_KEY }}
+          permission-issues: write
+          permission-pull-requests: write
+      - name: Size the pull request from trusted base policy
+        uses: Wolfsblvt/diffdevil@0827485c9d3795ef58a7934cd7a4b8b3fb5cc9c5 # v1.0.0, inspected 2026-10-02
+        with:
+          github-token: ${{ steps.automaton.outputs.token }}
+          # The workflow token only reads .diffdevil.yml and its template from the pull request base.
+          policy-token: ${{ github.token }}
+          config: .diffdevil.yml
+          # Repository label provisioning owns the size definitions; this job only assigns them.
+          definitions: none
+          comment-author: wolfsblvt-automaton[bot]
+          comment-author-id: '319117825'
