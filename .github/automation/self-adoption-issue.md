@@ -16,7 +16,9 @@ Owner-card projection and hard policy gates are not selected for this public pro
 
 ## Still to come: pull-request sizing
 
-Pull requests do not receive size labels or the XL reply yet. The DiffDevil GitHub Action will apply them next from the repository's `.diffdevil.yml`, as Wolfsblvt Automaton. The managed DiffDevil App cannot yet load Forgehand's repository-owned XL reply template; it returns `E_TEMPLATE_SOURCE`. Once one ordinary pull request returns a successful managed check, the App replaces the Action. The handover waits until no open pull request is still over the XL threshold with the Action's reply, so no one is told twice. It then switches the Action off and confirms its running jobs have finished before the App starts, so exactly one writer applies size labels and the XL reply.
+Pull requests do not receive size labels or the XL reply yet. After managed DiffDevil execution for Forgehand is suspended, the repository's disabled DiffDevil GitHub Action can be enabled to apply them from `.diffdevil.yml` as Wolfsblvt Automaton. One ordinary pull request must prove that interim route before it is offered in the reusable packet.
+
+The managed DiffDevil App remains the final writer, but it cannot yet load Forgehand's repository-owned XL reply template and currently returns `E_TEMPLATE_SOURCE`. It replaces the Action only after that template path is qualified and the one-writer handover is clear. The handover waits until no open pull request is still over the XL threshold with the Action's reply, so no one is told twice. It then switches the Action off, confirms every Action sizing run is terminal, reads open pull requests again, and only then resumes the App. Exactly one writer applies size labels and the XL reply throughout.
 
 ## Qualification
 
