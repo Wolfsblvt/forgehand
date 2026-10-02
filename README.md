@@ -34,11 +34,13 @@ necessary-response workflows; deliberate `still relevant` reopening; and concret
 The generated product packet includes repository-owned `.diffdevil.yml` and an XL-reply template for the managed
 **diffdevil** App. Forgehand itself has no size parser or local diffdevil executable. Exactly one selected DiffDevil host
 owns size labels, checks, and the once-per-transition XL reply at a time. The managed App remains the final hosted
-writer. For Forgehand's self-adoption, managed execution is currently suspended and the repository Action is enabled as
-the sole size writer. That Action still awaits proof on one ordinary pull request; it is later handed back to the App
-without overlapping writers or duplicate XL replies after the App can load the repository-owned XL template. The
-complete self-adoption boundary is documented in [`.github/automation/README.md`](.github/automation/README.md); the
-Action route is not part of a generated consumer packet merely because its source is enabled here.
+writer. For Forgehand's self-adoption, managed execution is currently suspended and the repository Action is the sole
+size writer. The Action was qualified on ordinary documentation PR #12: Wolfsblvt Automaton applied one stable
+`📏 Size: XS` label, repeated the result idempotently on a normal edit event, produced no XL reply because XS selects
+none, and exposed no token-shaped log material. The Action is later handed back to the App without overlapping writers
+or duplicate XL replies after the App can load the repository-owned XL template. The complete self-adoption boundary is
+documented in [`.github/automation/README.md`](.github/automation/README.md); the Action route is not part of a generated
+consumer packet until that packet deliberately adopts the now-qualified bridge.
 
 The defaults are intentionally straightforward: Issues and pull requests warn after **90 days without non-bot replies** and close after
 **7 further days**. Only replies reset the ordinary clock;
@@ -88,7 +90,7 @@ Repositories needing different composition can use [`action.yml`](action.yml) or
 into one runtime, not three separate implementations. Forgehand does not parse sizes or choose the DiffDevil host:
 a consumer admits exactly one qualified writer for its size labels and XL reply. The managed App is the intended hosted
 route; Forgehand's repository-only Action is a bounded self-adoption bridge, enabled only after managed execution was
-suspended and governed by the one-writer transition above.
+suspended and qualified on ordinary PR #12 under the one-writer transition above.
 
 ## Scope and support
 
