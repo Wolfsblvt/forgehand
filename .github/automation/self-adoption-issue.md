@@ -1,6 +1,6 @@
 Forgehand now carries its own pinned caller, lifecycle policy, labels, messages, and DiffDevil size policy.
 
-This issue is the public record for Forgehand's self-adoption. It was opened before the lifecycle was enabled; its first supported event afterwards exercises the repository's normal intake path through Wolfsblvt Automaton. Pull-request sizing through the DiffDevil GitHub Action is the next step. Managed DiffDevil App sizing remains the destination and will replace the Action as the only size writer.
+This issue is the public record for Forgehand's self-adoption. The lifecycle is enabled and has exercised normal issue and pull-request classification through Wolfsblvt Automaton. Managed DiffDevil App execution is suspended for Forgehand, and the repository DiffDevil Action is enabled as the sole current size writer. Managed App sizing remains the destination and will replace the Action after the App can load the repository-owned XL template and the duplicate-free handback is qualified.
 
 ## Active lifecycle behavior
 
@@ -14,9 +14,9 @@ This issue is the public record for Forgehand's self-adoption. It was opened bef
 
 Owner-card projection and hard policy gates are not selected for this public product repository. Development-line staging remains off while Forgehand has only `main`.
 
-## Still to come: pull-request sizing
+## Pull-request sizing: enabled, qualification next
 
-Pull requests do not receive size labels or the XL reply yet. After managed DiffDevil execution for Forgehand is suspended, the repository's disabled DiffDevil GitHub Action can be enabled to apply them from `.diffdevil.yml` as Wolfsblvt Automaton. One ordinary pull request must prove that interim route before it is offered in the reusable packet.
+The repository DiffDevil Action is enabled and applies from `.diffdevil.yml` as Wolfsblvt Automaton. Managed App execution for Forgehand is suspended, preserving exactly one current writer. One ordinary pull request must still prove the Action route before sizing is called qualified or offered in the reusable packet.
 
 The managed DiffDevil App remains the final writer, but it cannot yet load Forgehand's repository-owned XL reply template and currently returns `E_TEMPLATE_SOURCE`. It replaces the Action only after that template path is qualified and the one-writer handover is clear. The handover waits until no open pull request is still over the XL threshold with the Action's reply, so no one is told twice. It then switches the Action off, confirms every Action sizing run is terminal, reads open pull requests again, and only then resumes the App. Exactly one writer applies size labels and the XL reply throughout.
 
