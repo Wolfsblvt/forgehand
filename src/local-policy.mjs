@@ -13,5 +13,5 @@ export async function localPolicy(path, root = process.cwd()) {
     return readFile(actual, 'utf8');
   };
   const p = await loadPolicy({ get: async () => ({ default_branch: 'local-preview' }), ref: async () => 'local-preview', file }, path);
-  return { ...effectiveConfiguration(p.raw), mode: 'local-preview', root: actualRoot };
+  return { ...effectiveConfiguration(p.raw), config: p.config, mode: 'local-preview', root: actualRoot };
 }

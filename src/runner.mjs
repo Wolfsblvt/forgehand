@@ -10,7 +10,7 @@ export async function loadPolicy(gh,path) {
   const branch=repository.default_branch;
   const sha=await gh.ref(branch);
   const raw=JSON.parse(await gh.file(path,sha));
-  let selected=structuredClone(raw),applicability={};
+  let selected=structuredClone(raw),applicability;
   if(raw.labelPolicy) {
     const policy=JSON.parse(await gh.file(raw.labelPolicy,sha));
     const {mapping,areas,scopes}=labelPolicy(policy);
@@ -26,7 +26,7 @@ export async function loadPolicy(gh,path) {
     if(rule?.message && typeof rule.message==='object' && typeof rule.message.file==='string') rule.message=await gh.file(rule.message.file,sha);
   }
   const config=configure(selected);
-  config.labelScopes=applicability;
+  if(applicability) config.labelScopes=applicability;
   return {config,raw:selected,branch,sha,repository};
 }
 
