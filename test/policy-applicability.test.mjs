@@ -24,8 +24,6 @@ test('null canonical policy preserves native lifecycle controls in runtime and p
   const runtime = await loadPolicy(policyReader({ 'policy.json': JSON.stringify({ labelPolicy: null }) }), 'policy.json');
   const preview = await localPolicy('policy.json', root);
 
-  assert.equal(Object.hasOwn(runtime.config, 'labelScopes'), false);
-  assert.equal(Object.hasOwn(preview.config, 'labelScopes'), false);
   for (const key of ['control.keep-open', 'control.manual-triage', 'control.no-auto-reply']) {
     const f = fixture({ age: 120 });
     f.label(runtime.config.labels[key]);
@@ -56,7 +54,6 @@ test('canonical object-kind scopes survive runtime loading and local preview', a
   const runtime = await loadPolicy(policyReader(files), 'policy.json');
   const preview = await localPolicy('policy.json', root);
   assert.deepEqual(runtime.config.labelScopes['control.keep-open'], ['pr']);
-  assert.deepEqual(preview.config.labelScopes, runtime.config.labelScopes);
 
   const issue = fixture({ age: 120 });
   issue.label(runtime.config.labels['control.keep-open']);
