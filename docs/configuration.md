@@ -17,6 +17,8 @@ JSON is deliberate: native parsing, predictable types, and no runtime YAML depen
 Boolean switches disable only their documented capability. Unknown fields and contradictory values fail visibly.
 See [`schema/policy.schema.json`](../schema/policy.schema.json) for editor assistance and `configure()` for executable
 validation. The label-language mapping is validated separately, including descriptions, scopes, colors, and writers.
+With `labelPolicy: null`, Forgehand's native lifecycle mappings remain applicable. When a canonical label policy is
+selected, its exact `appliesTo` scopes constrain runtime planning and local preview alike.
 
 The standard profile is `product`, for public **or private** product repositories. `company` disables ordinary Issue
 expiry unless explicitly enabled; the complete company example also disables intake and response handling. It is for
