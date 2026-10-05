@@ -21,6 +21,8 @@ export class GitHub {
     const mutation=method!=='GET' && path!=='/graphql';
     const token=mutation?this.writeToken:this.readToken;
     if (mutation && !token) throw new Error('No bounded App writer; never fall back to GITHUB_TOKEN');
+    const cacheKey=method==='GET' && this.planningReads ? path : null;
+    if(cacheKey && this.planningReads.has(cacheKey)) return structuredClone(this.planningReads.get(cacheKey));
     const response=await this.fetcher(`https://api.github.com${path}`,{
       method,redirect:'error',headers:{Accept:'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'forgehand',...(token?{Authorization:`Bearer ${token}`}:{})},
       ...(body===undefined?{}:{body:JSON.stringify(body)})
@@ -29,7 +31,9 @@ export class GitHub {
       const error=new Error(`GitHub ${method} ${path.split('?')[0]} returned ${response.status}; inspect the run, permissions and current object before retrying.`);
       error.status=response.status; throw error;
     }
-    return {data:response.status===204?null:await response.json(),link:response.headers.get('link')};
+    const result={data:response.status===204?null:await response.json(),link:response.headers.get('link')};
+    if(cacheKey) this.planningReads.set(cacheKey,structuredClone(result));
+    return result;
   }
   async get(path) { return (await this.request('GET',this.root+path)).data; }
   async write(method,path,body) { return (await this.request(method,this.root+path,body)).data; }

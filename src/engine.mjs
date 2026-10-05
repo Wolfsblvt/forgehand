@@ -217,11 +217,11 @@ export class Engine {
     if(receipt) await this.updateRecord(number,receipt,purpose,values,{id:p.id,kind:p.type,status:'complete',pr:completion.pr,commit:completion.commit,branch:completion.branch});
     return {number,status:'fixed-in-stable-source',comment:suppress?'suppressed':'present'};
   }
-  async merged(number, {branch, recovery=false}={}) {
-    const pr=await this.gh.get(`/pulls/${number}`);
+  async merged(number, {branch, recovery=false, listedPR, completionIssues}={}) {
+    const pr=listedPR??await this.gh.get(`/pulls/${number}`);
     if(!pr.merged||![this.c.branches.main,this.c.branches.next].includes(pr.base.ref)) return [];
     const target=branch??pr.base.ref;
-    const issues=await this.gh.completionIssues(pr),results=[];
+    const issues=completionIssues??await this.gh.completionIssues(pr),results=[];
     for(const n of issues) results.push(await this.complete(n,{pr:number,commit:pr.merge_commit_sha,branch:target,recovery,integratedAt:pr.base.ref===target?pr.merged_at:null}));
     return results;
   }
