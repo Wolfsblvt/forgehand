@@ -68,7 +68,7 @@ function actionEnv(files,apply) {
     GITHUB_REPOSITORY:repository,
     AUTOMATION_POLICY:'policy.json',
     GITHUB_EVENT_PATH:files.eventPath,
-    GITHUB_EVENT_NAME:'workflow_dispatch',
+    GITHUB_EVENT_NAME:'schedule',
     GITHUB_OUTPUT:files.outputPath,
     GITHUB_STEP_SUMMARY:files.summaryPath,
     AUTOMATION_APPLY:String(apply),

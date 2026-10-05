@@ -81,7 +81,7 @@ test('manually closing an issue clears only owned active state',async()=>{
 test('an object-local hold remains blocked without failing the event run',async()=>{
   const f=fixture();f.label(f.c.labels['control.no-auto-reply']);
   const pages=f.gh.pages.bind(f.gh);f.gh.pages=async path=>path==='/issues?state=all'?[{number:7}]:path.startsWith('/pulls?state=')?[]:pages(path);
-  const r=await runEvent({github:f.gh,policy:policy(f),event:{},eventName:'workflow_dispatch',apply:true,now:f.clock.now});
+  const r=await runEvent({github:f.gh,policy:policy(f),event:{},eventName:'schedule',apply:true,now:f.clock.now});
   assert.equal(r.status,'complete');assert.equal(r.errors.length,0);assert.equal(r.results[0].status,'blocked');
   assert.match(r.results[0].planned.reason,/suppressed/);assert.equal(f.s.issue.state,'open');assert.equal(f.gh.writes.length,0);
 });
@@ -122,7 +122,7 @@ function sweepGitHub({failSnapshot}={}) {
 }
 test('a sweep keeps an object hold while applying an independent eligible object',async()=>{
   const f=sweepGitHub();
-  const result=await runEvent({github:f.github,policy:policy(f.held),event:{},eventName:'workflow_dispatch',apply:true,now:f.held.clock.now});
+  const result=await runEvent({github:f.github,policy:policy(f.held),event:{},eventName:'schedule',apply:true,now:f.held.clock.now});
   assert.equal(result.status,'complete',JSON.stringify(result));assert.deepEqual(result.errors,[]);
   assert.equal(result.results[0].status,'blocked');assert.match(result.results[0].planned.reason,/suppressed/);
   assert.equal(result.results[1].status,'converged');assert.ok(result.results[1].actions.some(x=>x.type==='message'));
@@ -130,7 +130,7 @@ test('a sweep keeps an object hold while applying an independent eligible object
 });
 test('a sweep reports a genuine object read failure as a failed run',async()=>{
   const f=sweepGitHub({failSnapshot:8});
-  const result=await runEvent({github:f.github,policy:policy(f.held),event:{},eventName:'workflow_dispatch',apply:true,now:f.held.clock.now});
+  const result=await runEvent({github:f.github,policy:policy(f.held),event:{},eventName:'schedule',apply:true,now:f.held.clock.now});
   assert.equal(result.status,'partial-failure');assert.equal(result.results[0].status,'blocked');
   assert.deepEqual(result.errors,['Issue 8 read failed']);assert.equal(f.held.gh.writes.length,0);
 });
