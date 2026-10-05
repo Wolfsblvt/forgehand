@@ -10,10 +10,15 @@ import { marker } from '../src/text.mjs';
 const repository='Wolf/project',sha='b'.repeat(40);
 const json=(data,status=200,headers={})=>new Response(JSON.stringify(data),{status,headers});
 
-function provider({count=491,graphFailure,graphTruncated,graphRepeated}={}) {
+function provider({count=491,graphFailure,graphTruncated,graphRepeated,scopedControls=false}={}) {
   const objects=new Map(),calls=[];
   const raw={branches:{main:'main',next:'next',tryNextUrl:'https://example.invalid/next'},gate:{enabled:true,protectMain:false}};
   const c=configure(raw);
+  const canonicalLabels={schemaVersion:1,labels:Object.entries(c.labels).map(([key,name])=>{
+    const appliesTo=['control.manual-triage','control.no-auto-reply','state.awaiting-release'].includes(key)?['issue']:key==='state.stale'?['pr']:['issue','pr'];
+    return {key,name,color:'abcdef',description:`${appliesTo.map(kind=>`[${kind.toUpperCase()}]`).join('')} Fixture label`,appliesTo,owner:Object.fromEntries(appliesTo.map(kind=>[kind,'agent']))};
+  })};
+  if(scopedControls) raw.labelPolicy='labels.json';
   for(let number=1;number<=count;number++) {
     const f=fixture({pr:number>8,overrides:raw,age:100});
     f.s.issue.number=number;
@@ -37,6 +42,16 @@ function provider({count=491,graphFailure,graphTruncated,graphRepeated}={}) {
     }
     if(number===5) f.s.issue.locked=true;
     if(number===6) f.label(c.labels['control.manual-triage']);
+    if(scopedControls && [9,10,11].includes(number)) {
+      f.state('closed',actor,95);
+      const closeEventId=f.s.timeline.at(-1).id;
+      f.label(c.labels[number===10?'control.no-auto-reply':'control.manual-triage']);
+      if(number===9) f.label(c.labels['state.stale']);
+      else {
+        f.comment(marker({version:1,id:'timeout',kind:'timeout',status:'closed',reopenEligible:true,closeEventId,warningAt:date(80)}),actor,95);
+        f.comment('Still relevant: a new reproduction.',undefined,100);
+      }
+    }
     if(number===13) { f.s.pr.base.ref='next';f.s.pr.body='Fixes #2'; }
     if(number===14) f.s.pr.body='Fixes #5';
     if(number===15) f.label(c.labels['state.stale']); // closed cleanup
@@ -83,6 +98,10 @@ function provider({count=491,graphFailure,graphTruncated,graphRepeated}={}) {
     if(path===`/repos/${repository}`) return json({id:123,full_name:repository,default_branch:'main'});
     if(path.includes('/git/ref/heads/')) return json({object:{sha}});
     if(path.includes('/contents/policy.json')) return json({type:'file',encoding:'base64',content:Buffer.from(JSON.stringify(raw)).toString('base64')});
+    if(path.includes('/contents/labels.json')) {
+      assert.equal(url.searchParams.get('ref'),sha);
+      return json({type:'file',encoding:'base64',content:Buffer.from(JSON.stringify(canonicalLabels)).toString('base64')});
+    }
     if(path.includes('/collaborators/')) return json({permission:path.includes('/collaborators/Wolf/')?'write':'read'});
     if(path.includes('/compare/')) return json({status:'ahead'});
     if(path===`/repos/${repository}/labels`) return json(Object.values(c.labels).map(name=>({name})));
@@ -192,6 +211,21 @@ for(const [name,option,pattern] of [['unavailable',{graphFailure:true},/lookup f
     assert(!f.calls.some(x=>x.method!=='GET'&&x.path!=='/graphql'));
   });
 }
+
+test('canonical kind-scoped controls preserve closed PR cleanup and reopening',async t=>{
+  t.mock.timers.enable({apis:['Date'],now:Date.UTC(2026,9,5)});
+  const optimized=provider({count:20,scopedControls:true}),reference=provider({count:20,scopedControls:true});
+  const actual=await journey(optimized),expected=await journey(reference,referenceExecute);
+  assert.deepEqual(actual,expected);
+  assert.equal(actual.result.status,'complete');
+  assert(!optimized.objects.get(9).s.issue.labels.some(x=>x.name===optimized.c.labels['state.stale']));
+  for(const number of [10,11]) assert.equal(optimized.objects.get(number).s.issue.state,'open');
+  assert.equal(actual.result.results.find(x=>x.number===1).status,'blocked');
+  assert.equal(optimized.objects.get(6).s.comments.length,0);
+  for(const [number,f] of optimized.objects) assert.deepEqual(f.s,reference.objects.get(number).s);
+  assert.deepEqual(optimized.checks,reference.checks);
+  assert(optimized.calls.some(x=>x.path.endsWith('/contents/labels.json')));
+});
 
 test('a sweep discards planning reads before the writer is minted and honors changed suppression',async()=>{
   const f=provider({count:20});

@@ -1,4 +1,5 @@
 import { completionRefs, record } from './text.mjs';
+import { labelSelection } from './planner.mjs';
 
 const pageSize=100;
 const batchSize=20;
@@ -51,15 +52,15 @@ export async function sweepEvidence(gh,issues,closedPRs,c) {
   for(const issue of issues) {
     const subject=subjects.get(issue.number);
     if(!subject) continue;
-    const labels=new Set(issue.labels.map(x=>x.name??x));
-    const manual=labels.has(c.labels['control.manual-triage']);
-    const cleanup=!manual && c.cleanup.some(k=>c.labels[k] && labels.has(c.labels[k]) && (c.labelScopes===undefined || c.labelScopes[k]?.includes(issue.pull_request?'pr':'issue')));
+    const {has}=labelSelection(issue,c,issue.pull_request?'pr':'issue');
+    const manual=has('control.manual-triage');
+    const cleanup=!manual && c.cleanup.some(has);
     const pendingClose=subject.comments.some(x=>{
       if(typeof x.body!=='string' || !Object.hasOwn(x,'author') || (x.author && (typeof x.author.login!=='string' || !['User','Bot','Mannequin','Organization'].includes(x.author.__typename)))) throw new Error('Missing sweep comment ownership');
       const r=record({body:x.body,user:{login:x.author?.login,type:x.author?.__typename}},c.actor);
       return r?.status==='pending' && ['timeout','resolve'].includes(r.kind);
     });
-    const terminal=prs.get(issue.number)?.merged_at || issue.locked || !c.reopen.enabled || manual || labels.has(c.labels['control.no-auto-reply']);
+    const terminal=prs.get(issue.number)?.merged_at || issue.locked || !c.reopen.enabled || manual || has('control.no-auto-reply');
     if(terminal && !cleanup && !pendingClose) converged.add(issue.number);
   }
   for(const pr of closedPRs) {
