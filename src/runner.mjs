@@ -4,6 +4,7 @@ import { Engine } from './engine.mjs';
 import { appToken } from './auth.mjs';
 import { labelPolicy } from './label-policy.mjs';
 import { completionRefs, record } from './text.mjs';
+import { sweepEvidence } from './sweep.mjs';
 
 export async function loadPolicy(gh,path) {
   const repository=await gh.get('');
@@ -95,11 +96,18 @@ export async function runEvent({github:gh,policy,event,eventName,apply=false,now
       else { await attempt(()=>engine.reconcile(number)); await engine.policyCurrent(); await attempt(()=>gatePR(gh,c,number,apply)); }
     } else await attempt(()=>engine.reconcile(number));
   } else if(eventName==='schedule'||eventName==='workflow_dispatch') {
-    for(const item of await gh.pages('/issues?state=all')) await attempt(()=>engine.reconcile(item.number));
+    const issues=await gh.pages('/issues?state=all');
+    const closedPRs=await gh.pages('/pulls?state=closed');
+    const evidence=gh.request?await sweepEvidence(gh,issues,closedPRs,c):null;
+    for(const item of issues) {
+      if(evidence?.converged.has(item.number)) results.push({number:item.number,actions:[],status:'converged'});
+      else await attempt(()=>engine.reconcile(item.number));
+    }
     await attempt(()=>engine.releaseSweep());
-    for(const pr of await gh.pages('/pulls?state=closed')) if(pr.merged_at && [c.branches.main,c.branches.next].includes(pr.base.ref)) {
-      await attempt(()=>engine.merged(pr.number,{recovery:true}));
-      if(c.branches.next && pr.base.ref===c.branches.next) await attempt(()=>engine.merged(pr.number,{branch:c.branches.main,recovery:true}));
+    for(const pr of closedPRs) if(pr.merged_at && [c.branches.main,c.branches.next].includes(pr.base.ref)) {
+      const facts=evidence?{listedPR:{...pr,merged:true},completionIssues:evidence.completions.get(pr.number)}:{};
+      await attempt(()=>engine.merged(pr.number,{...facts,recovery:true}));
+      if(c.branches.next && pr.base.ref===c.branches.next) await attempt(()=>engine.merged(pr.number,{...facts,branch:c.branches.main,recovery:true}));
     }
     // Missed metadata events also converge; no dependence on a lossy hook queue.
     for(const pr of await gh.pages('/pulls?state=open')) {
@@ -128,7 +136,11 @@ export function requiresWriter(result) {
 export async function execute({repository,policyPath,event,eventName,apply=false,readToken,clientId,privateKey,fetcher=fetch,mintToken=appToken,workflowRef=process.env.GITHUB_REF}) {
   const gh=new GitHub({repository,readToken,fetcher});
   const policy=await loadPolicy(gh,policyPath);
-  const readPlan=await runEvent({github:gh,policy,event,eventName,apply:false,workflowRef});
+  // Coalesce reads only inside one read-only sweep. Apply starts with no cached facts.
+  if(['schedule','workflow_dispatch'].includes(eventName)) gh.planningReads=new Map();
+  let readPlan;
+  try { readPlan=await runEvent({github:gh,policy,event,eventName,apply:false,workflowRef}); }
+  finally { gh.planningReads=null; }
   const writerNeeded=requiresWriter(readPlan);
   if(!apply || !writerNeeded) return {...readPlan,requiresWriter:writerNeeded};
   const auth=await mintToken({repository,clientId,privateKey,expectedSlug:policy.config.actor.replace(/\[bot\]$/,''),checks:policy.config.gate.enabled,fetcher});

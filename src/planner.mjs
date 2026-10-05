@@ -6,13 +6,19 @@ const time = x => new Date(x).getTime();
 const after = (a,b) => time(a) > time(b);
 const latest = items => [...items].sort((a,b) => time(b.createdAt ?? b.created_at)-time(a.createdAt ?? a.created_at) || (b.id-a.id || 0))[0];
 
+/** Select configured labels only where the canonical policy applies to this object kind. */
+export function labelSelection(issue, c, kind) {
+  const labels = new Set(issue.labels.map(l => typeof l === 'string' ? l : l.name));
+  const selectedScope = k => c.labelScopes === undefined || c.labelScopes[k]?.includes(kind);
+  const has = k => selectedScope(k) && c.labels[k] && labels.has(c.labels[k]);
+  return { selectedScope, has };
+}
+
 /** One coherent mutation boundary. Event payloads are hints; this consumes freshly read facts. */
 export function plan(snapshot, c, now = new Date().toISOString()) {
   const { issue, pr, comments, timeline, replies = comments, maintainers = [] } = snapshot;
   const kind = pr ? 'pr' : 'issue';
-  const labels = new Set(issue.labels.map(l => typeof l === 'string' ? l : l.name));
-  const selectedScope = k => c.labelScopes === undefined || c.labelScopes[k]?.includes(kind);
-  const has = k => selectedScope(k) && c.labels[k] && labels.has(c.labels[k]);
+  const { selectedScope, has } = labelSelection(issue, c, kind);
   const records = comments.map(x => record(x,c.actor)).filter(Boolean);
   const humans = replies.filter(x => human(x.user,c.automationAccounts) && x.body?.trim());
   const transitions = timeline.filter(e => ['closed','reopened'].includes(e.event));

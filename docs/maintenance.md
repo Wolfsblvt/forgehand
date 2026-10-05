@@ -101,6 +101,21 @@ reopening or merge is not silently discarded by an arbitrary lookback window. Th
 repository. Provider rate limits or incomplete data fail visibly; do not substitute partial history and call it current.
 This first-party implementation does not yet have a persisted maintenance cursor or claim large-estate throughput.
 
+Cold sweeps retain complete REST enumeration. Closed-subject comments and merged-PR commit messages and completion
+relationships are read in bounded, fully paginated GraphQL batches. List labels and complete comment evidence can
+settle a terminal no-effect case; cleanup, possible reopening and interrupted-close receipts retain the full snapshot
+path. Read-only planning coalesces repeated GETs within that pass. The cache is discarded before apply; actual effects
+retain current policy, object, suppression, comparison and permission checks. No cursor or cache persists between runs.
+
+The request-count regression in `test/sweep.test.mjs` exercises the complete enabled caller sequence: plan-only,
+the applying invocation's internal plan, then apply and completion recovery. It compares decisions and resulting state
+with the original reader route on 491 paginated objects, including holds, warnings, cleanup, reopening, staged/stable
+completion and interrupted-close recovery. REST requests and a conservative GraphQL point allowance are measured
+separately against the 1,000-per-hour Actions budgets. This establishes fixture fit, not a universal throughput guarantee:
+repositories with materially more eligible effects or deeper histories need their own measurement. Missing, changed,
+truncated or cyclic connection evidence fails; it cannot establish convergence. Offline fit does not establish Actions
+permissions or consumer activation.
+
 Labels are added and removed individually. Missing definitions are a setup failure, not an excuse to create names from
 contributor text. An ambiguous comment POST is rediscovered by its actual App-owned marker before another attempt.
 An attributable close whose response was lost can finalize its unique pending receipt; an intervening human transition
