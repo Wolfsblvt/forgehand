@@ -7,6 +7,7 @@ import { completionRefs, record } from './text.mjs';
 
 export async function loadPolicy(gh,path) {
   const repository=await gh.get('');
+  if((repository.id!==undefined || repository.full_name!==undefined) && gh.bindRepository) gh.bindRepository(repository);
   const branch=repository.default_branch;
   const sha=await gh.ref(branch);
   const raw=JSON.parse(await gh.file(path,sha));
@@ -80,10 +81,8 @@ export async function runEvent({github:gh,policy,event,eventName,apply=false,now
   const engine=new Engine({github:gh,config:c,policySha:policy.sha,policyBranch:policy.branch,apply,...(now?{now}:{})});
   const results=[]; const errors=[];
   const attempt=async(fn)=>{
-    try {
-      const result=await fn(); results.push(result);
-      for(const item of Array.isArray(result)?result:[result]) if(item?.status==='blocked') errors.push(item.reason??item.planned?.reason??'A selected transition is blocked');
-    } catch(e) { errors.push(e.message); }
+    try { results.push(await fn()); }
+    catch(e) { errors.push(e.message); }
   };
   const number=event.issue?.number??event.pull_request?.number??Number(event.inputs?.number);
   if(Number.isSafeInteger(number)&&number>0) {

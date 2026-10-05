@@ -106,9 +106,10 @@ contributor text. An ambiguous comment POST is rediscovered by its actual App-ow
 An attributable close whose response was lost can finalize its unique pending receipt; an intervening human transition
 prevents that inference. A provider-refused reopen remains closed and is returned as a failure.
 
-Required warning suppression, a changed policy/head, stale completion evidence, rate limiting, unavailable endpoints,
-and missing credentials produce actionable blocked/failure results. Other independent subjects may finish, but the run
-is non-green when a selected effect failed. There is no silent downgrade to a broad token or another writer.
+Required warning suppression and stale completion evidence remain object-local blocked results with their reasons; they
+do not keep other safely planned subjects from proceeding. Changed policy/head, rate limiting, unavailable endpoints,
+and missing credentials remain run failures. Other independent subjects may finish, but a failed read, plan, or write
+keeps the run non-green. There is no silent downgrade to a broad token or another writer.
 
 A finalized completion receipt prevents old events from repeatedly closing an Issue that was later manually reopened.
 Historic recovery without that proof does not override a later human reopening. If an operator deliberately removes

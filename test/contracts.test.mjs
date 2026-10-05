@@ -51,6 +51,27 @@ test('GitHub pagination follows all pages, even after a short first page',async(
  calls.push(url);return new Response(JSON.stringify(calls.length===1?[{id:1}]:[{id:2}]),{headers:calls.length===1?{link:'<https://api.github.com/repos/Wolf/project/issues/7/comments?per_page=100&page=2>; rel="next"'}:{}});
  }});assert.deepEqual(await gh.pages('/issues/7/comments'),[{id:1},{id:2}]);assert.equal(calls.length,2);
 });
+test('GitHub pagination follows the selected repository id-form link',async()=>{
+ const repositoryId=1330155388,calls=[];
+ const gh=new GitHub({repository:'Wolf/project',fetcher:async url=>{
+  calls.push(new URL(url).pathname+new URL(url).search);
+  return calls.length===1
+   ?new Response('[{"id":1}]',{headers:{link:`<https://api.github.com/repositories/${repositoryId}/issues?per_page=100&page=2>; rel="next"`}})
+   :new Response('[{"id":2}]');
+ }});
+ gh.bindRepository({full_name:'Wolf/project',id:repositoryId});
+ assert.deepEqual(await gh.pages('/issues'),[{id:1},{id:2}]);
+ assert.equal(calls[1],`/repositories/${repositoryId}/issues?per_page=100&page=2`);
+ await assert.rejects(gh.request('GET','/repositories/987654/issues'),/escaped the current repository/);
+});
+test('GitHub pagination refuses another repository id and an untrusted origin',async()=>{
+ for(const target of ['https://api.github.com/repositories/987654/issues?page=2','https://api.github.com.evil.invalid/repositories/1330155388/issues?page=2']) {
+  let calls=0;
+  const gh=new GitHub({repository:'Wolf/project',fetcher:async()=>{calls++;return new Response('[]',{headers:{link:`<${target}>; rel="next"`}});}});
+  gh.bindRepository({full_name:'Wolf/project',id:1330155388});
+  await assert.rejects(gh.pages('/issues'),/Untrusted pagination URL/);assert.equal(calls,1);
+ }
+});
 test('pagination cannot export tokens to an attacker origin',async()=>{
  const gh=new GitHub({repository:'Wolf/project',readToken:'fixture-read',fetcher:async()=>new Response('[]',{headers:{link:'<https://evil.invalid/next>; rel="next"'}})});
  await assert.rejects(gh.pages('/issues'),/Untrusted/);
