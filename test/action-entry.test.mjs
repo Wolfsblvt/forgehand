@@ -68,7 +68,8 @@ function actionEnv(files,apply) {
     GITHUB_REPOSITORY:repository,
     AUTOMATION_POLICY:'policy.json',
     GITHUB_EVENT_PATH:files.eventPath,
-    GITHUB_EVENT_NAME:'schedule',
+    GITHUB_EVENT_NAME:'workflow_dispatch',
+    GITHUB_REF:'refs/heads/main',
     GITHUB_OUTPUT:files.outputPath,
     GITHUB_STEP_SUMMARY:files.summaryPath,
     AUTOMATION_APPLY:String(apply),
@@ -78,16 +79,27 @@ function actionEnv(files,apply) {
   };
 }
 
-function actionRuntime(fetcher) {
+function actionRuntime(fetcher,{onMint=()=>{}}={}) {
   return options=>execute({...options,fetcher,mintToken:async({repository:requested})=>{
     assert.equal(requested,repository);
+    onMint();
     return {token:'fixture-app-token'};
   }});
 }
 
-test('Action entry keeps a held object local, runs the eligible page-2 object, and preserves real read failures',async t=>{
+test('manual Action entry validates its ref, sweeps page-2 objects, and preserves real read failures',async t=>{
   const files=await actionFiles(t),backend=sweepFetcher(),logs=[];
   const executeRuntime=actionRuntime(backend.fetcher),logger={log:value=>logs.push(value),error:value=>logs.push(value)};
+
+  let writerMinted=false;
+  const refusedFiles=await actionFiles(t),refusedBackend=sweepFetcher();
+  const refused=await runAction({
+    env:{...actionEnv(refusedFiles,true),GITHUB_REF:'refs/pull/15/merge'},
+    executeRuntime:actionRuntime(refusedBackend.fetcher,{onMint:()=>{writerMinted=true;}}),logger
+  });
+  assert.equal(refused.exitCode,1);assert.match(refused.error.message,/default-branch workflow/);
+  assert.equal(writerMinted,false);assert.ok(refusedBackend.calls.every(call=>call.method==='GET'));
+  assert.equal(refusedBackend.comments.get(7).length,0);assert.equal(refusedBackend.comments.get(8).length,0);
 
   const plan=await runAction({env:actionEnv(files,false),executeRuntime,logger});
   assert.equal(plan.exitCode,0);assert.equal(plan.result.status,'complete');assert.equal(plan.result.requiresWriter,true);

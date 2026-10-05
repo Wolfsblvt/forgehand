@@ -13,6 +13,7 @@ export async function runAction({env=process.env,executeRuntime=execute,logger=c
       policyPath: env.AUTOMATION_POLICY ?? '.github/automation/policy.json',
       event: JSON.parse(await readFile(env.GITHUB_EVENT_PATH, 'utf8')),
       eventName: env.GITHUB_EVENT_NAME,
+      workflowRef: env.GITHUB_REF,
       apply: mode === 'true',
       readToken: env.AUTOMATION_READ_TOKEN,
       clientId: env.AUTOMATON_CLIENT_ID,
