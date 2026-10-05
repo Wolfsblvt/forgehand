@@ -78,10 +78,61 @@ test('manually closing an issue clears only owned active state',async()=>{
   const f=fixture();f.label(f.c.labels['state.stale']);f.label('Manual information');f.state('closed');
   await engine(f).reconcile(7);assert.deepEqual(f.s.issue.labels,[{name:'Manual information'}]);
 });
-test('blocked transitions make the event result non-green',async()=>{
+test('an object-local hold remains blocked without failing the event run',async()=>{
   const f=fixture();f.label(f.c.labels['control.no-auto-reply']);
-  const r=await runEvent({github:f.gh,policy:policy(f),event:{issue:{number:7}},eventName:'issues',apply:true,now:f.clock.now});
-  assert.equal(r.status,'partial-failure');assert.match(r.errors[0],/suppressed/);assert.equal(f.s.issue.state,'open');
+  const pages=f.gh.pages.bind(f.gh);f.gh.pages=async path=>path==='/issues?state=all'?[{number:7}]:path.startsWith('/pulls?state=')?[]:pages(path);
+  const r=await runEvent({github:f.gh,policy:policy(f),event:{},eventName:'schedule',apply:true,now:f.clock.now});
+  assert.equal(r.status,'complete');assert.equal(r.errors.length,0);assert.equal(r.results[0].status,'blocked');
+  assert.match(r.results[0].planned.reason,/suppressed/);assert.equal(f.s.issue.state,'open');assert.equal(f.gh.writes.length,0);
+});
+function sweepGitHub({failSnapshot}={}) {
+  const held=fixture(),eligible=fixture();
+  held.label(held.c.labels['control.no-auto-reply']);
+  const byNumber=new Map([[7,held],[8,eligible]]);
+  const selected=number=>byNumber.get(number);
+  return {
+    held,eligible,
+    github:{
+      repository:'Wolf/project',
+      ref:()=>held.gh.ref(),
+      pages:async path=>{
+        if(path==='/issues?state=all') return [{number:7},{number:8}];
+        if(path.startsWith('/pulls?state=')) return [];
+        if(path==='/labels') return Object.values(eligible.c.labels).map(name=>({name}));
+        const number=Number(path.match(/^\/issues\/(\d+)/)?.[1]);
+        if(number) return selected(number).gh.pages(path.replace(`/issues/${number}`,'/issues/7'));
+        throw new Error(`Unexpected sweep page ${path}`);
+      },
+      snapshot:async number=>{
+        if(number===failSnapshot) throw new Error(`Issue ${number} read failed`);
+        const snapshot=await selected(number).gh.snapshot();
+        snapshot.issue.number=number;
+        return snapshot;
+      },
+      get:path=>{
+        const number=Number(path.match(/^\/issues\/(\d+)/)?.[1]);
+        return selected(number).gh.get(path.replace(`/issues/${number}`,'/issues/7'));
+      },
+      write:(method,path,body)=>{
+        const number=Number(path.match(/^\/issues\/(\d+)/)?.[1]);
+        return selected(number).gh.write(method,path.replace(`/issues/${number}`,'/issues/7'),body);
+      }
+    }
+  };
+}
+test('a sweep keeps an object hold while applying an independent eligible object',async()=>{
+  const f=sweepGitHub();
+  const result=await runEvent({github:f.github,policy:policy(f.held),event:{},eventName:'schedule',apply:true,now:f.held.clock.now});
+  assert.equal(result.status,'complete',JSON.stringify(result));assert.deepEqual(result.errors,[]);
+  assert.equal(result.results[0].status,'blocked');assert.match(result.results[0].planned.reason,/suppressed/);
+  assert.equal(result.results[1].status,'converged');assert.ok(result.results[1].actions.some(x=>x.type==='message'));
+  assert.equal(f.held.gh.writes.length,0);assert.equal(f.eligible.s.comments.length,1);
+});
+test('a sweep reports a genuine object read failure as a failed run',async()=>{
+  const f=sweepGitHub({failSnapshot:8});
+  const result=await runEvent({github:f.github,policy:policy(f.held),event:{},eventName:'schedule',apply:true,now:f.held.clock.now});
+  assert.equal(result.status,'partial-failure');assert.equal(result.results[0].status,'blocked');
+  assert.deepEqual(result.errors,['Issue 8 read failed']);assert.equal(f.held.gh.writes.length,0);
 });
 test('untrusted execution events are rejected before mutation',async()=>{
   const f=fixture();await assert.rejects(runEvent({github:f.gh,policy:policy(f),event:{issue:{number:7}},eventName:'pull_request',apply:true}),/Unsupported privileged/);

@@ -7,6 +7,7 @@ import { completionRefs, record } from './text.mjs';
 
 export async function loadPolicy(gh,path) {
   const repository=await gh.get('');
+  if((repository.id!==undefined || repository.full_name!==undefined) && gh.bindRepository) gh.bindRepository(repository);
   const branch=repository.default_branch;
   const sha=await gh.ref(branch);
   const raw=JSON.parse(await gh.file(path,sha));
@@ -70,20 +71,18 @@ async function pushCommits(gh,event) {
   return all;
 }
 
-export async function runEvent({github:gh,policy,event,eventName,apply=false,now}) {
+export async function runEvent({github:gh,policy,event,eventName,apply=false,now,workflowRef=process.env.GITHUB_REF}) {
   const c=policy.config;
   if(event.repository?.full_name && event.repository.full_name!==gh.repository) throw new Error('Event repository mismatch');
   const allowed=['issues','issue_comment','pull_request_target','push','schedule','workflow_dispatch'];
   if(!allowed.includes(eventName)) throw new Error(`Unsupported privileged event: ${eventName}`);
-  if(eventName==='workflow_dispatch'&&process.env.GITHUB_REF && process.env.GITHUB_REF!==`refs/heads/${policy.branch}`) throw new Error('Manual reconciliation must use the default-branch workflow');
+  if(eventName==='workflow_dispatch'&&workflowRef && workflowRef!==`refs/heads/${policy.branch}`) throw new Error('Manual reconciliation must use the default-branch workflow');
   if(event.sender?.login===c.actor && ['issues','issue_comment','pull_request_target'].includes(eventName) && !event.pull_request?.merged) return {status:'own-event',results:[]};
   const engine=new Engine({github:gh,config:c,policySha:policy.sha,policyBranch:policy.branch,apply,...(now?{now}:{})});
   const results=[]; const errors=[];
   const attempt=async(fn)=>{
-    try {
-      const result=await fn(); results.push(result);
-      for(const item of Array.isArray(result)?result:[result]) if(item?.status==='blocked') errors.push(item.reason??item.planned?.reason??'A selected transition is blocked');
-    } catch(e) { errors.push(e.message); }
+    try { results.push(await fn()); }
+    catch(e) { errors.push(e.message); }
   };
   const number=event.issue?.number??event.pull_request?.number??Number(event.inputs?.number);
   if(Number.isSafeInteger(number)&&number>0) {
@@ -126,16 +125,16 @@ export function requiresWriter(result) {
   return result.status==='dry-run' || Object.values(result).some(requiresWriter);
 }
 
-export async function execute({repository,policyPath,event,eventName,apply=false,readToken,clientId,privateKey,fetcher=fetch,mintToken=appToken}) {
+export async function execute({repository,policyPath,event,eventName,apply=false,readToken,clientId,privateKey,fetcher=fetch,mintToken=appToken,workflowRef=process.env.GITHUB_REF}) {
   const gh=new GitHub({repository,readToken,fetcher});
   const policy=await loadPolicy(gh,policyPath);
-  const readPlan=await runEvent({github:gh,policy,event,eventName,apply:false});
+  const readPlan=await runEvent({github:gh,policy,event,eventName,apply:false,workflowRef});
   const writerNeeded=requiresWriter(readPlan);
   if(!apply || !writerNeeded) return {...readPlan,requiresWriter:writerNeeded};
   const auth=await mintToken({repository,clientId,privateKey,expectedSlug:policy.config.actor.replace(/\[bot\]$/,''),checks:policy.config.gate.enabled,fetcher});
   gh.writeToken=auth.token;
   let result,error;
-  try { result=await runEvent({github:gh,policy,event,eventName,apply:true}); } catch(e) { error=e; }
+  try { result=await runEvent({github:gh,policy,event,eventName,apply:true,workflowRef}); } catch(e) { error=e; }
   try { await gh.request('DELETE','/installation/token'); } catch(e) { throw new Error(`${error?error.message+'; ':''}installation-token revocation failed: ${e.message}`); }
   if(error) throw error;
   return {...result,requiresWriter:false};

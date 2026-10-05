@@ -7,8 +7,16 @@ export class GitHub {
     this.readToken=readToken; this.writeToken=writeToken; this.fetcher=fetcher;
     this.permissionCache=new Map();
   }
+  bindRepository(repository) {
+    if(repository?.full_name!==this.repository || !Number.isSafeInteger(repository.id) || repository.id<1) throw new Error('Repository metadata does not identify the selected repository');
+    this.repositoryId=repository.id;
+  }
+  repositoryPath(path) {
+    return path===this.root || path.startsWith(`${this.root}/`) ||
+      (this.repositoryId!==undefined && path.startsWith(`/repositories/${this.repositoryId}/`));
+  }
   async request(method,path,body) {
-    if (!(path.startsWith(this.root+'/') || path===this.root || path==='/graphql' || path==='/installation/token')) throw new Error('Request escaped the current repository');
+    if (!(this.repositoryPath(path) || path==='/graphql' || path==='/installation/token')) throw new Error('Request escaped the current repository');
     if(path==='/graphql' && (method!=='POST' || !/^query\b/.test(body?.query??''))) throw new Error('Only explicit read-only GraphQL queries are supported');
     const mutation=method!=='GET' && path!=='/graphql';
     const token=mutation?this.writeToken:this.readToken;
@@ -37,7 +45,7 @@ export class GitHub {
       const match=link?.match(/<([^>]+)>;\s*rel="next"/);
       if (match) {
         const url=new URL(match[1]);
-        if(url.origin!=='https://api.github.com' || !url.pathname.startsWith(this.root+'/')) throw new Error('Untrusted pagination URL');
+        if(url.origin!=='https://api.github.com' || url.username || url.password || url.hash || !this.repositoryPath(url.pathname)) throw new Error('Untrusted pagination URL');
         next=url.pathname+url.search;
       } else next=null;
     }
