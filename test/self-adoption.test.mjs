@@ -14,8 +14,8 @@ test('self-adoption source pins the published runtime twice and leaves the calle
   const release = JSON.parse(await file('.github/automation/runtime-release.json'));
   const selected = publicRuntime(release);
   assert.equal(selected.repository, 'Wolfsblvt/forgehand');
-  assert.equal(selected.runtimeRef, 'e02b0ad4176882ea57ed8e23ac2d6ee0eaa6d71a');
-  assert.equal(selected.releaseUrl, 'https://github.com/Wolfsblvt/forgehand/releases/tag/v0.2.1');
+  assert.equal(selected.runtimeRef, '7959d9958a89a2f78b3f9f2dc6bddf7e76cfc592');
+  assert.equal(selected.releaseUrl, 'https://github.com/Wolfsblvt/forgehand/releases/tag/v0.2.5');
   const generated = await adoptionFiles({ runtimeRelease: release });
   const caller = await file('.github/workflows/repository-automation.yml');
   assert.equal(caller, generated['.github/workflows/repository-automation.yml']);

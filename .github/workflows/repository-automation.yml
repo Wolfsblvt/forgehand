@@ -30,10 +30,10 @@ jobs:
   reconcile:
     # Fork PRs use this trusted base workflow and its enable flag; never execute PR-head code.
     if: vars.FORGEHAND_ENABLED == 'true'
-    uses: Wolfsblvt/forgehand/.github/workflows/automation.yml@e02b0ad4176882ea57ed8e23ac2d6ee0eaa6d71a
+    uses: Wolfsblvt/forgehand/.github/workflows/automation.yml@7959d9958a89a2f78b3f9f2dc6bddf7e76cfc592
     with:
       runtime-repository: Wolfsblvt/forgehand
-      runtime-ref: e02b0ad4176882ea57ed8e23ac2d6ee0eaa6d71a
+      runtime-ref: 7959d9958a89a2f78b3f9f2dc6bddf7e76cfc592
       policy: .github/automation/policy.json
       apply: ${{ github.event_name != 'workflow_dispatch' || inputs.apply }}
       app-client-id: ${{ vars.WOLFSBLVT_AUTOMATON_CLIENT_ID }}
