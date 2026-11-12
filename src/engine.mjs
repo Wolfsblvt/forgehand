@@ -184,7 +184,7 @@ export class Engine {
   async complete(number,completion) {
     await this.policyCurrent();
     let issue=await this.gh.get(`/issues/${number}`);
-    if(issue.pull_request) throw new Error('Completion target must be an Issue, not another PR');
+    if(issue.pull_request) return {number,status:'not-an-issue'};
     const p=completionPlan(issue,this.c,completion);
     if(!p) return {number,status:'outside-release-lines'};
     const prior=(await this.gh.pages(`/issues/${number}/comments`)).map(x=>record(x,this.c.actor)).find(x=>x?.id===p.id && x.status==='complete');
