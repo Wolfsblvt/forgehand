@@ -5,7 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { configure } from '../src/config.mjs';
 import { runAction } from '../src/action-entry.mjs';
-import { execute } from '../src/runner.mjs';
+import { execute, runEvent } from '../src/runner.mjs';
+import { fixture, date } from './fixture.mjs';
 
 const repository='Wolf/project';
 const repositoryId=1330155388;
@@ -121,4 +122,31 @@ test('manual Action entry validates its ref, sweeps page-2 objects, and preserve
   assert.equal(failed.result.results[0].status,'blocked');
   assert.ok(failed.result.errors.some(error=>error.includes('/issues/8 returned 500')));
   assert.equal((await readFile(failedFiles.outputPath,'utf8')),'requires-writer=false\n');
+});
+
+test('a merged PR reference is reported without failing later Issue completion through the Action entry',async t=>{
+  const files=await actionFiles(t),f=fixture({age:0}),get=f.gh.get.bind(f.gh),pages=f.gh.pages.bind(f.gh);
+  const mergedPR={number:11,merged:true,merge_commit_sha:'c'.repeat(40),merged_at:date(0),base:{ref:'main'}};
+  f.gh.completionIssues=async()=>[11,7];
+  f.gh.get=async path=>path==='/issues/11'?{number:11,pull_request:{url:'https://api.github.com/repos/Wolf/project/pulls/11'}}:
+    path==='/pulls/11'?mergedPR:get(path);
+  f.gh.pages=async path=>path==='/issues?state=all'?[{number:7}]:
+    path==='/pulls?state=closed'?[mergedPR]:pages(path);
+  const result=await runAction({
+    env:{...actionEnv(files,true),GITHUB_EVENT_NAME:'schedule'},
+    executeRuntime:options=>runEvent({
+      github:f.gh,policy:{config:f.c,branch:'main',sha:'b'.repeat(40)},event:options.event,
+      eventName:options.eventName,apply:options.apply,now:f.clock.now
+    }),
+    logger:{log(){},error(){} }
+  });
+
+  assert.equal(result.exitCode,0,result.error?.message??JSON.stringify(result.result));
+  assert.equal(result.result.status,'complete');
+  assert.deepEqual(result.result.errors,[]);
+  assert.deepEqual(result.result.results.at(-1),[
+    {number:11,status:'not-an-issue'},
+    {number:7,status:'fixed-in-stable-source',comment:'present'}
+  ]);
+  assert.equal(f.s.issue.state,'closed');
 });
